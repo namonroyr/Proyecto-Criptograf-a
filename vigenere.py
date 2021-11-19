@@ -80,3 +80,33 @@ def decriptar(texto: str, llave: str) -> str:
         inverso = 26 - (alphabet[llave[i % len(llave)]])
         plano = plano + string.ascii_lowercase[(alphabet[texto[i]] + inverso) % 26]
     return plano
+
+
+def examinarM(subcadenas: list[str], m: int) -> float:
+    listaPrima = list()
+    for i in range(m):
+        palabra = ''.join([subcadena[i] for subcadena in subcadenas if len(subcadena) > i])
+        listaPrima.append(palabra)
+    listaSecunda = [indCoincidence(r) for r in listaPrima]
+    return sum(listaSecunda) / float(len(listaPrima))
+
+
+def vigenereAttack(texto: str) -> list[(str, str)]:
+    texto = texto.lower()
+    texto = ''.join([i for i in texto if i in string.ascii_lowercase])
+    m_p = kasiski(texto)
+    m_analizado = [m for m in m_p if
+                   abs(0.065 - examinarM([texto[i:i + m] for i in range(0, len(texto), m)], m)) <= 0.005]
+    for m in m_analizado:
+        llave = list()
+        subcadenas = [texto[i:i + m] for i in range(0, len(texto), m)]
+        listaPrima = list()
+        for i in range(m):
+            listaPrima.append(
+                ''.join([palabra[i] for palabra in subcadenas if len(palabra) > i])
+            )
+        for i in range(m):
+            Mg_lista = Mg(listaPrima[i])
+            llave.append(Mg_lista.index(max(Mg_lista)))
+        llave_palabra = ''.join([string.ascii_lowercase[i] for i in llave])
+        yield llave_palabra, decriptar(texto, llave_palabra)
