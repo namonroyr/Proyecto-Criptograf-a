@@ -1,1 +1,1 @@
-# Proyecto-Criptograf-a
+# Aplicacion para escritorio usando PyQt5
