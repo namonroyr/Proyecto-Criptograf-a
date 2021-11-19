@@ -7,12 +7,15 @@ FreqIngles = [.082, .015, .028, .043, .127, .022, .020, .061,
               .001, .060, .063, .091, .028, .010, .023, .001,
               .020, .001]
 
+alphabet = {u[0]: u[1] for u in zip(string.ascii_lowercase, range(0, 26))}
+
 
 def encriptar(texto: str, llave: str) -> str:
     texto = texto.lower()
     llave = llave.lower()
-    s = [string.ascii_lowercase.index(texto[n]) for n in range(len(texto))]
-    t = [string.ascii_lowercase.index(llave[n]) for n in range(len(llave))]
+    texto = ''.join([u for u in texto if u in string.ascii_lowercase])
+    s = [alphabet[texto[n]] for n in range(len(texto))]
+    t = [alphabet[llave[n]] for n in range(len(llave))]
     r = [(s[i] + t[i % (len(t))]) % 26 for i in range(len(s))]
     return ''.join([string.ascii_lowercase[i] for i in r])
 
@@ -56,3 +59,24 @@ def kasiski(texto: str) -> list:
 def indCoincidence(x: str):
     frequency = {u: sum([1 for r in x if u == r]) for u in string.ascii_lowercase}
     return sum([frequency[i] * (frequency[i] - 1) / (len(x) * (len(x) - 1)) for i in string.ascii_lowercase])
+
+
+def Mg(y: str) -> list[float]:
+    freq = [y.count(string.ascii_lowercase[i]) for i in range(len(string.ascii_lowercase))]
+    Mgs = []
+    n = len(y)
+    for j in range(26):
+        mg = 0.0
+        for i in range(26):
+            pos = (i + j) % 26
+            mg += ((FreqIngles[i] * freq[pos]) / float(n))
+        Mgs.append(mg)
+    return Mgs
+
+
+def decriptar(texto: str, llave: str) -> str:
+    plano: str = ''
+    for i in range(len(texto)):
+        inverso = 26 - (alphabet[llave[i % len(llave)]])
+        plano = plano + string.ascii_lowercase[(alphabet[texto[i]] + inverso) % 26]
+    return plano
