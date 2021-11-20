@@ -2,22 +2,33 @@ import sys
 import math
 import numpy as np
 from egcd import egcd
-from PyQt5.QtWidgets import QApplication, QGridLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QFileDialog, QPlainTextEdit, QMainWindow, QLineEdit, QComboBox
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QSize
+from PyQt5.QtGui import QImage, QPalette, QBrush, QColor
 from PyQt5.QtCore import (Qt, QFile, QDate, QTime, QSize, QTimer, QRect, QRegExp, QTranslator,
                           QLocale, QLibraryInfo)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget,  QGridLayout, QLabel, QDialog, QTableWidget, QMenu,
+                             QTableWidgetItem, QAbstractItemView, QLineEdit, QPushButton, QTabWidget,
+                             QActionGroup, QAction, QMessageBox, QFrame, QStyle, QGridLayout,
+                             QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QGroupBox,
+                             QDateEdit, QComboBox, QPushButton, QVBoxLayout, QFileDialog, QPlainTextEdit, QLineEdit)
+from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegion, QClipboard,
+                         QRegExpValidator)
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QCursor
-import vigenere as vg
+
 abc = {"A" : 0, "B" : 1, "C" : 2, "D" : 3, "E" : 4, "F" : 5, "G" : 6, "H" : 7, "I" : 8, "J" : 9, "K" : 10,
         "L" : 11, "M" : 12, "N" : 13, "O" : 14, "P" : 15, "Q" : 16, "R" : 17, "S" : 18, "T" : 19, "U" : 20,
         "V" : 21, "W" : 22, "X" : 23, "Y" : 24, "Z" : 25}
 inv_abc = {value:key for key, value in abc.items()}
 
+criptosistemas = ["Criptosistema Afín", "Criptosistema por Desplazamiento", "Criptosistema por Sustitución", "Criptosistema por Permutación",
+                     "Criptosistema de Vigenere"]
+
 class Criptosistema:
     def __init__(self, clave):
         self.clave = clave
-
 
 class CriptosistemaDesplazamiento(Criptosistema):
     def __init__(self, clave):
@@ -85,7 +96,7 @@ class CriptosistemaPermutacion(Criptosistema):
     def encriptar(self, input, output):
         m = self.clave[0]
         values =  list(map(int, self.clave[1].split()))
-        
+
         if (len(set(values)) < m):
             limpiarCampos()
             input.setPlainText("Error: Ingresó valores repetidos o no ingreso {} valores".format(m))
@@ -105,13 +116,13 @@ class CriptosistemaPermutacion(Criptosistema):
             for indice in range(1, m+1):
                 letra_cifrada = subtexto[ int(mat_permutacion[1][ int(np.where(mat_permutacion == indice)[1][0]) ]) - 1 ]
                 texto_cifrado += letra_cifrada
-                
+
         output.setPlainText(texto_cifrado)
 
     def desencriptar(self, input, output):
         m = self.clave[0]
         values =  list(map(int, self.clave[1].split()))
-        
+
         if (len(set(values)) < m):
             limpiarCampos()
             input.setPlainText("Error: Ingresó valores repetidos o no ingreso {} valores".format(m))
@@ -131,20 +142,19 @@ class CriptosistemaPermutacion(Criptosistema):
             for indice in range(1, m+1):
                 letra_descifrada = subtexto[ int(mat_inv_permutacion[1][ int(np.where(mat_inv_permutacion == indice)[1][0]) ]) - 1 ]
                 texto_descifrado += letra_descifrada
-            
+
         output.setPlainText(texto_descifrado)
 
 class CriptosistemaHill(Criptosistema):
-    def __init__(self, clave, m):
-        super().__init__(clave)
-        self.m = int(m)
+    def __init__(self, img):
+        super().__init__(img)
+        #self.m = int(m)
 
     def createMatrix(self, matrix, m):
         """
         Crea una matriz numpy a partir del input
         """
-        entradas = list(map(int, matrix.split()))
-        np_matrix = np.matrix(np.array(entradas).reshape(m, m))
+        np_matrix = np.matrix(np.array(matrix).reshape(m, m))
         return np_matrix
 
     def matrixInv(matriz, mod):
@@ -156,33 +166,84 @@ class CriptosistemaHill(Criptosistema):
         matriz_inv = det_inv * np.round(det*np.linalg.inv(matriz)).astype(int)%mod
         return matriz_inv
 
-    def encriptar(self, input, output):
-        K = self.createMatrix(self.clave, self.m)
+    def encriptar(self):
+        nums = [6, 24, 1, 13, 16, 10, 20, 17, 15]
+        m = 3
+        K = self.createMatrix(nums, m)
         det_K = int(np.round(np.linalg.det(K)))
+        print("Hiii")
         #Se verifica si la clave es válida
-        if (det_K != 0 and math.gcd(det_K, 26) == 1):
-            texto_claro = input.toPlainText().strip()
-            texto_cifrado = ''
-            texto_num = []
-            m = self.m
-            for letter in texto_claro:
-                texto_num.append(abc[letter.upper()])
-            #Se divide el texto en secciones de tamaño m
-            div_m = [texto_num[i:i+int(m)] for i in range (0, len(texto_num), int(m))]
+        if (det_K != 0 and math.gcd(det_K, 256) == 1):
+            img_byte = self.clave
+            img_cypher = []
+            #Se divide el arreglo en secciones de tamaño m
+            div_m = [img_byte[i:i+int(m)] for i in range (0, len(img_byte), int(m))]
             #Se encripta cada sección de tamaño m con la matriz Clave
             for s in div_m:
                 while len(s) != K.shape[0]:
-                    s.append(abc["B"])
-                num = np.dot(s, K) % 26
+                    s.append(21)
+                num = np.dot(s, K) % 256
                 n = num.shape[1]
                 for i in range(n):
                     numero = int(num[0, i])
-                    texto_cifrado += inv_abc[numero]
-            output.setPlainText(texto_cifrado)
+                    img_cypher.append(numero)
+            return img_cypher
         else:
             input.setPlainText("La clave ingresada no es válida")
 
     #def desencriptar(self, input, output):
+
+class PhotoLabel(QLabel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setAlignment(Qt.AlignCenter)
+        self.setText('\n\n Arrastre la imagen aquí \n\n')
+        self.setStyleSheet('''
+        QLabel {
+            border: 4px dashed #aaa;
+        }''')
+
+    def setPixmap(self, *args, **kwargs):
+        super().setPixmap(*args, **kwargs)
+        self.setStyleSheet('''
+        QLabel {
+            border: none;
+        }''')
+
+class Template(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.photo = PhotoLabel()
+        self.file = ""
+        grid = QGridLayout(self)
+        grid.addWidget(self.photo, 0, 0)
+        self.setAcceptDrops(True)
+        self.resize(300, 200)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasImage:
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasImage:
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasImage:
+            event.setDropAction(Qt.CopyAction)
+            filename = event.mimeData().urls()[0].toLocalFile()
+            event.accept()
+            self.file = filename
+            self.open_image(filename)
+        else:
+            event.ignore()
+
+    def open_image(self, filename=None):
+        self.photo.setPixmap(QPixmap(filename))
 
 def botonAfin(clave, input, output, encriptar):
     criptosistema_afin = CriptosistemaAfin(clave)
@@ -205,27 +266,47 @@ def botonPermutacion(clave, input, output, encriptar):
     elif encriptar == False:
         criptosistema_permutacion.desencriptar(input, output)
 
-def botonHill(clave, m, input, output, encriptar):
-    criptosistema_Hill = CriptosistemaHill(clave, m)
-    if encriptar == True:
-        criptosistema_Hill.encriptar(input, output)
-    elif encriptar == False:
-        criptosistema_Hill.desencriptar(input, output)
-
+def botonHill(input, encriptar):
+    if input.file != "":
+        # open file for reading purpose
+        fin = open(input.file, 'rb')
+        # storing image data in variable "image"
+        image = fin.read()
+        fin.close()
+        # converting image into byte array to perform encryption easily on numeric data
+        image_byte = bytearray(image)
+        criptosistema_Hill = CriptosistemaHill(image_byte)
+        print("Here")
+        if encriptar == True:
+            img_res = criptosistema_Hill.encriptar()
+            print("Here1")
+            # writing encrypted data in image
+            with open(input.file, 'wb') as output:
+                output.write(bytes(img_res))
+            print("Here2")
+            fin.close()
+            QMessageBox.critical(None, 'Éxito', 'Encriptación realizada', QMessageBox.Ok)
+        #elif encriptar == False:
+            #criptosistema_Hill.desencriptar(input, output)
+    else:
+        QMessageBox.critical(None, 'Imagen no ingresada', 'Arrastre una imagen para procesar', QMessageBox.Ok)
 def crearBoton(cifrado):
     if cifrado:
-        boton = QPushButton(text = "Cifrar texto")
+        boton = QPushButton(text = "Cifrar")
     else:
-        boton = QPushButton(text = "Descifrar texto")
+        boton = QPushButton(text = "Descifrar")
     boton.setStyleSheet(
         """
         QPushButton {
             border:1px solid #161616;
             border-radius:5%;
             padding:5px;
+            background:#0B3862;
+            color:white;
         }
         QPushButton:hover {
-            background-color:#E3E3E3;
+            background-color:#145795;
+            font: bold;
         }
         """
     )
@@ -239,72 +320,149 @@ def limpiarCampos():
         i.setPlainText("")
 
 def escogerCriptosistema():
-    if str(menu.currentText()) == "Criptosistema afin":
+    if str(menu.currentText()) == "Criptosistema Afín":
         # Clave afin
-        txt_clave.setText("Ingrese los dos digitos de la clave afin separados por un espacio:")
-
-        res_clave.setText("")
+        for i in reversed(range(1,gridcifrado.count())):
+            gridcifrado.itemAt(i).widget().deleteLater()
+        txt_clave_afin = QLabel()
+        txt_clave_afin.setText("Ingrese los dos digitos de la clave afin separados por un espacio:")
+        res_clave_afin = QLineEdit()
+        res_clave_afin.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+        res_clave_afin.setText("")
         for i in [input_aCifrar, input_aDescifrar, output_cifrado, output_descifrado]:
             i.setPlainText("")
-
         boton_cifrar = crearBoton(cifrado = True)
         boton_descifrar = crearBoton(cifrado = False)
         boton_cifrar.clicked.connect(lambda : botonAfin(res_clave.text().split(), input_aCifrar, output_cifrado, True))
         boton_descifrar.clicked.connect(lambda : botonAfin(res_clave.text().split(), input_aDescifrar, output_descifrado, False))
-        grid.addWidget(boton_descifrar, 7, 1)
-        grid.addWidget(boton_cifrar, 7, 0)
+        gridcifrado.addWidget(txt_clave_afin, 1, 0)
+        gridcifrado.addWidget(res_clave_afin, 2, 0)
+        gridcifrado.addWidget(boton_descifrar, 7, 1)
+        gridcifrado.addWidget(boton_cifrar, 7, 0)
 
-    elif str(menu.currentText()) == "Criptosistema por desplazamiento":
+    elif str(menu.currentText()) == "Criptosistema por Desplazamiento":
         # Clave por desplazamiento
-        txt_clave.setText("Ingrese el digito de la clave por desplazamiento:")
-
+        txt_clave.setText("Ingrese el digito de la clave por Desplazamiento:")
         res_clave.setText("")
         for i in [input_aCifrar, input_aDescifrar, output_cifrado, output_descifrado]:
             i.setPlainText("")
-
         boton_cifrar = crearBoton(cifrado = True)
         boton_descifrar = crearBoton(cifrado = False)
         boton_cifrar.clicked.connect(lambda : botonDesplazamiento(res_clave.text(), input_aCifrar, output_cifrado, True))
         boton_descifrar.clicked.connect(lambda : botonDesplazamiento(res_clave.text(), input_aDescifrar, output_descifrado, False))
-        grid.addWidget(boton_descifrar, 7, 1)
-        grid.addWidget(boton_cifrar, 7, 0)
+        gridcifrado.addWidget(boton_descifrar, 7, 1)
+        gridcifrado.addWidget(boton_cifrar, 7, 0)
 
-    elif str(menu.currentText()) == "Criptosistema por permutacion":
-        txt_clave.setText("Ingrese los digitos de la matriz de permutacion separados por un espacio:")
-
+    elif str(menu.currentText()) == "Criptosistema por Permutación":
+        txt_clave.setText("Ingrese los digitos de la matriz de permutación separados por un espacio:")
         limpiarCampos()
-
         boton_cifrar = crearBoton(cifrado = True)
         boton_descifrar = crearBoton(cifrado = False)
         boton_cifrar.clicked.connect(lambda : botonPermutacion([len(res_clave.text().split()), res_clave.text()], input_aCifrar, output_cifrado, True))
         boton_descifrar.clicked.connect(lambda : botonPermutacion([len(res_clave.text().split()), res_clave.text()], input_aDescifrar, output_descifrado, False))
-        grid.addWidget(boton_descifrar, 7, 1)
-        grid.addWidget(boton_cifrar, 7, 0)
+        gridcifrado.addWidget(boton_descifrar, 7, 1)
+        gridcifrado.addWidget(boton_cifrar, 7, 0)
 
-    elif str(menu.currentText()) == "Criptosistema de Hill":
-        # Clave por desplazamiento
-        grid.addWidget(txt_m, 1, 1)
-        grid.addWidget(res_m, 2, 1)
-        txt_clave.setText("Ingrese los valores de la matriz clave separados por un espacio: ")
-        res_clave.setText("")
-        res_m.setText("")
-        for i in [input_aCifrar, input_aDescifrar, output_cifrado, output_descifrado]:
-            i.setPlainText("")
-        boton_cifrar = crearBoton(cifrado = True)
-        boton_descifrar = crearBoton(cifrado = False)
-        boton_cifrar.clicked.connect(lambda : botonHill(res_clave.text(), res_m.text(), input_aCifrar, output_cifrado, True))
-        boton_descifrar.clicked.connect(lambda : botonDesplazamiento(res_clave.text(), input_aDescifrar, output_descifrado, False))
-        grid.addWidget(boton_descifrar, 7, 1)
-        grid.addWidget(boton_cifrar, 7, 0)
 
 # Crea la ventana
 app = QApplication(sys.argv)
-window = QWidget()
-window.setWindowTitle("Criptosistema Afin")
-window.setFixedWidth(1050)
-window.setStyleSheet("background: #ffffff;")
+app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
+window = QtWidgets.QMainWindow()
+window.setWindowTitle("CriptoTool")
+window.setFixedWidth(1100)
+window.setFixedHeight(735)
+#window.setStyleSheet("background: #ffffff;")
 
+font = QtGui.QFont()
+font.setFamily("Segoe UI SemiLight")
+font.setPointSize(8)
+QApplication.setFont(font)
 #### Añade todos los elementos ####
+#Tab
+tabWidget = QtWidgets.QTabWidget(window)
+tabWidget.setGeometry(QtCore.QRect(25, 55, 1050, 650))
+tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
+tabWidget.setObjectName("tabWidget")
+cifrado = QtWidgets.QWidget()
+tabWidget.addTab(cifrado, "Cifrado/Descifrado")
+gridcifrado = QGridLayout(cifrado)
+gridcifrado.setGeometry(QtCore.QRect(10, 10, 1030, 600))
+#------------------Hill----------------------------------
+Hill = QtWidgets.QWidget()
+tabWidget.addTab(Hill, "Hill")
+gridHill = QGridLayout(Hill)
+gridHill.setGeometry(QtCore.QRect(10, 10, 1030, 600))
+img = Template()
+gridHill.addWidget(img, 1, 0)
+txt_img = QLabel()
+txt_img.setText("Arrastre o seleccione la imagen que desea encriptar/desencriptar: ")
+txt_result = QLabel()
+#txt_result.setText("El resultado de su imagen aparece aquí: ")
+boton_cifrar = crearBoton(cifrado = True)
+boton_descifrar = crearBoton(cifrado = False)
+boton_cifrar.clicked.connect(lambda : botonHill(img, True))
+#boton_descifrar.clicked.connect(lambda : botonDesplazamiento(res_clave.text(), input_aDescifrar, output_descifrado, False))
+gridHill.addWidget(txt_img, 0, 0)
+#gridHill.addWidget(txt_result, 0, 1)
+#gridHill.addWidget(boton_descifrar, 2, 1)
+gridHill.addWidget(boton_cifrar, 2, 0)
+
+
+
+criptanalysis = QtWidgets.QWidget()
+tabWidget.addTab(criptanalysis, "Criptanálisis")
+tabWidget.setStyleSheet("""
+QTabWidget::tab-bar {
+    left: 1px; /* move to the right by 5px */
+}
+QTabWidget::pane {
+    border: 1px solid lightgray;
+    top:-1px;
+    background-color: #FFFFFF;
+    }
+QTabBar::tab {
+    background: #0B3862;
+    color: white;
+    font-size: 17px;
+    min-width: 200px;
+    min-height: 30px;
+    padding: 2px;
+}
+QTabBar::tab:selected, QTabBar::tab:hover {
+    background: #145795;
+    font: bold;
+                        }
+QTabBar::tab:!selected {
+    margin-top: 3px;
+}""")
+tabWidget.setCurrentIndex(0)
+menubar = QtWidgets.QMenuBar(window)
+menubar.setGeometry(QtCore.QRect(0, 0, 500, 200))
+menubar.setStyleSheet("""
+QMenuBar{
+    padding: 2px 10px;
+    background-color: #0B3862;
+    color: #51CBFF;
+    border-radius: 5px;
+    font-size: 20px;
+    }
+QMenu::item {
+    height: 42px;
+    margin: 0px;
+    }""")
+menuClasicos = QtWidgets.QMenu(menubar)
+menuBloque = QtWidgets.QMenu(menubar)
+menuClaveP = QtWidgets.QMenu(menubar)
+menuSalir = QtWidgets.QMenu(menubar)
+window.setMenuBar(menubar)
+menuClasicos.setTitle("Criptosistemas CLÁSICOS")
+menuBloque.setTitle("DE BLOQUE")
+menuClaveP.setTitle("CLAVE PÚBLICA")
+menuSalir.setTitle("Salir")
+menubar.addAction(menuClasicos.menuAction())
+menubar.addAction(menuBloque.menuAction())
+menubar.addAction(menuClaveP.menuAction())
+menubar.addAction(menuSalir.menuAction())
 
 # Menu de criptosistemas
 menu = QComboBox()
@@ -329,23 +487,14 @@ menu.setStyleSheet(
        background-color:#E3E3E3;
     }
     """)
-criptosistemas = ["Criptosistema afin", "Criptosistema por desplazamiento", "Criptosistema por permutacion", 
-                    "Criptosistema de Hill", "Criptosistema de Vigenere"]
 menu.addItems(criptosistemas)
-
 menu.currentTextChanged.connect(escogerCriptosistema)
-
+menu.setCurrentIndex(0)
 # Clave
 txt_clave = QLabel()
 txt_clave.setText("Ingrese los dos digitos de la clave afin separados por un espacio:")
 res_clave = QLineEdit()
 res_clave.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
-
-# m de la Matriz Hill
-txt_m = QLabel()
-txt_m.setText("Ingrese el valor M (número de filas y columnas de la matriz clave MxM):")
-res_m = QLineEdit()
-res_m.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
 
 # Texto a cifrar
 txt_aCifrar = QLabel(text = "Ingrese el texto a cifrar:")
@@ -377,11 +526,27 @@ output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-rad
 boton_descifrar = crearBoton(cifrado = False)
 boton_descifrar.clicked.connect(lambda : botonAfin(res_clave.text().split(), input_aDescifrar, output_descifrado, False))
 
-# Añade los widgets a la ventana.
-grid = QGridLayout()
-grid.addWidget(menu, 0, 0)
+# Añade los widgets al tab de cifrado
+gridcifrado.addWidget(menu, 0, 0)
+gridcifrado.addWidget(txt_clave, 1, 0)
+gridcifrado.addWidget(res_clave, 2, 0)
+gridcifrado.addWidget(txt_aCifrar, 3, 0)
+gridcifrado.addWidget(input_aCifrar, 4, 0)
+gridcifrado.addWidget(txt_cifrado, 5, 0)
+gridcifrado.addWidget(output_cifrado, 6, 0)
+gridcifrado.addWidget(boton_cifrar, 7, 0)
 
-grid.addWidget(txt_clave, 1, 0)
+gridcifrado.addWidget(txt_aDescifrar, 3, 1)
+gridcifrado.addWidget(input_aDescifrar, 4, 1)
+gridcifrado.addWidget(txt_descifrado, 5, 1)
+gridcifrado.addWidget(output_descifrado, 6, 1)
+gridcifrado.addWidget(boton_descifrar, 7, 1)
+
+"""
+#grid = QGridLayout()
+#grid.addWidget(menu, 0, 0)
+
+#grid.addWidget(txt_clave, 1, 0)
 grid.addWidget(res_clave, 2, 0)
 grid.addWidget(txt_aCifrar, 3, 0)
 grid.addWidget(input_aCifrar, 4, 0)
@@ -395,7 +560,7 @@ grid.addWidget(txt_descifrado, 5, 1)
 grid.addWidget(output_descifrado, 6, 1)
 grid.addWidget(boton_descifrar, 7, 1)
 
-window.setLayout(grid)
-
+#window.setLayout(grid)
+"""
 window.show()
 sys.exit(app.exec())
