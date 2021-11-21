@@ -1,6 +1,7 @@
 import sys
 import math
 import numpy as np
+import cv2
 from egcd import egcd
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSize
@@ -17,6 +18,7 @@ from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegio
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QCursor
+import hill
 
 abc = {"A" : 0, "B" : 1, "C" : 2, "D" : 3, "E" : 4, "F" : 5, "G" : 6, "H" : 7, "I" : 8, "J" : 9, "K" : 10,
         "L" : 11, "M" : 12, "N" : 13, "O" : 14, "P" : 15, "Q" : 16, "R" : 17, "S" : 18, "T" : 19, "U" : 20,
@@ -145,54 +147,6 @@ class CriptosistemaPermutacion(Criptosistema):
 
         output.setPlainText(texto_descifrado)
 
-class CriptosistemaHill(Criptosistema):
-    def __init__(self, img):
-        super().__init__(img)
-        #self.m = int(m)
-
-    def createMatrix(self, matrix, m):
-        """
-        Crea una matriz numpy a partir del input
-        """
-        np_matrix = np.matrix(np.array(matrix).reshape(m, m))
-        return np_matrix
-
-    def matrixInv(matriz, mod):
-        """
-        Función para encontrar la matriz módulo inversa
-        """
-        det = int(np.round(np.linalg.det(matriz)))
-        det_inv = egcd(det, mod)[1] % mod
-        matriz_inv = det_inv * np.round(det*np.linalg.inv(matriz)).astype(int)%mod
-        return matriz_inv
-
-    def encriptar(self):
-        nums = [6, 24, 1, 13, 16, 10, 20, 17, 15]
-        m = 3
-        K = self.createMatrix(nums, m)
-        det_K = int(np.round(np.linalg.det(K)))
-        print("Hiii")
-        #Se verifica si la clave es válida
-        if (det_K != 0 and math.gcd(det_K, 256) == 1):
-            img_byte = self.clave
-            img_cypher = []
-            #Se divide el arreglo en secciones de tamaño m
-            div_m = [img_byte[i:i+int(m)] for i in range (0, len(img_byte), int(m))]
-            #Se encripta cada sección de tamaño m con la matriz Clave
-            for s in div_m:
-                while len(s) != K.shape[0]:
-                    s.append(21)
-                num = np.dot(s, K) % 256
-                n = num.shape[1]
-                for i in range(n):
-                    numero = int(num[0, i])
-                    img_cypher.append(numero)
-            return img_cypher
-        else:
-            input.setPlainText("La clave ingresada no es válida")
-
-    #def desencriptar(self, input, output):
-
 class PhotoLabel(QLabel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -201,6 +155,7 @@ class PhotoLabel(QLabel):
         self.setStyleSheet('''
         QLabel {
             border: 4px dashed #aaa;
+            font: 17px;
         }''')
 
     def setPixmap(self, *args, **kwargs):
@@ -218,7 +173,7 @@ class Template(QWidget):
         grid = QGridLayout(self)
         grid.addWidget(self.photo, 0, 0)
         self.setAcceptDrops(True)
-        self.resize(300, 200)
+        self.resize(300, 450)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasImage:
@@ -267,29 +222,27 @@ def botonPermutacion(clave, input, output, encriptar):
         criptosistema_permutacion.desencriptar(input, output)
 
 def botonHill(input, encriptar):
-    if input.file != "":
-        # open file for reading purpose
-        fin = open(input.file, 'rb')
-        # storing image data in variable "image"
-        image = fin.read()
-        fin.close()
-        # converting image into byte array to perform encryption easily on numeric data
-        image_byte = bytearray(image)
-        criptosistema_Hill = CriptosistemaHill(image_byte)
-        print("Here")
+    image_file_name = input.file
+    img_name = image_file_name.split('.')[0]
+    img_extension = image_file_name.split('.')[1]
+    file_ext = ['jpg','png']
+    if image_file_name != "" and img_extension in file_ext:
+        img, original_shape = read_image(image_file_name)
+        criptosistema_Hill = hill.Hill(img)
         if encriptar == True:
-            img_res = criptosistema_Hill.encriptar()
-            print("Here1")
+            img_enc_vec = criptosistema_Hill.encriptar(img[0])
+            encoded_img = img_enc_vec.reshape(original_shape)
             # writing encrypted data in image
-            with open(input.file, 'wb') as output:
-                output.write(bytes(img_res))
-            print("Here2")
-            fin.close()
-            QMessageBox.critical(None, 'Éxito', 'Encriptación realizada', QMessageBox.Ok)
+            encoded_img_name = '{0}-encoded.{1}'.format(img_name, img_extension)
+            print(encoded_img_name)
+            encoded_img.astype(np.uint8)
+            cv2.imwrite(encoded_img_name, encoded_img)
+            QMessageBox.information(None, 'Éxito', 'Encriptación realizada, puede encrontrar la imagen encriptada en: '+encoded_img_name, QMessageBox.Ok)
         #elif encriptar == False:
             #criptosistema_Hill.desencriptar(input, output)
     else:
-        QMessageBox.critical(None, 'Imagen no ingresada', 'Arrastre una imagen para procesar', QMessageBox.Ok)
+        QMessageBox.critical(None, 'Imagen no ingresada', 'Arrastre una imagen para procesar o ingrese una imagen con formato válido (.jpg, .png)', QMessageBox.Ok)
+
 def crearBoton(cifrado):
     if cifrado:
         boton = QPushButton(text = "Cifrar")
@@ -318,6 +271,15 @@ def limpiarCampos():
     res_clave.setText("")
     for i in [input_aCifrar, input_aDescifrar, output_cifrado, output_descifrado]:
         i.setPlainText("")
+
+def read_image(image_path):
+    """ Read an image and return a one hot vector of the image"""
+    img = cv2.imread(image_path, 0)
+    print(img)
+    reshape_value = 1
+    for i in img.shape:
+        reshape_value *= i
+    return img.reshape((1, reshape_value)), img.shape
 
 def escogerCriptosistema():
     if str(menu.currentText()) == "Criptosistema Afín":
@@ -375,7 +337,7 @@ window.setFixedHeight(735)
 
 font = QtGui.QFont()
 font.setFamily("Segoe UI SemiLight")
-font.setPointSize(8)
+font.setPointSize(10)
 QApplication.setFont(font)
 #### Añade todos los elementos ####
 #Tab
@@ -389,25 +351,66 @@ gridcifrado = QGridLayout(cifrado)
 gridcifrado.setGeometry(QtCore.QRect(10, 10, 1030, 600))
 #------------------Hill----------------------------------
 Hill = QtWidgets.QWidget()
-tabWidget.addTab(Hill, "Hill")
+tabWidget.addTab(Hill, "Hill - Imagen")
 gridHill = QGridLayout(Hill)
 gridHill.setGeometry(QtCore.QRect(10, 10, 1030, 600))
-img = Template()
-gridHill.addWidget(img, 1, 0)
+img_c = Template()
+gridHill.addWidget(img_c, 1, 0, 3, 1)
+img_d = Template()
+gridHill.addWidget(img_d, 1, 2, 3, 1)
 txt_img = QLabel()
-txt_img.setText("Arrastre o seleccione la imagen que desea encriptar/desencriptar: ")
-txt_result = QLabel()
+txt_img.setText("Imagen a encriptar / encriptada: ")
+txt_img.setAlignment(Qt.AlignCenter)
+txt_img.setStyleSheet('''
+QLabel {
+    font-size: 22px;
+    font-family: Segoe UI;
+}''')
+txt_img_d = QLabel()
+txt_img_d.setText("Imagen a desencriptar / desencriptada: ")
+txt_img_d.setAlignment(Qt.AlignCenter)
+txt_img_d.setStyleSheet('''
+QLabel {
+    font-size: 22px;
+    font-family: Segoe UI;
+}''')
 #txt_result.setText("El resultado de su imagen aparece aquí: ")
 boton_cifrar = crearBoton(cifrado = True)
 boton_descifrar = crearBoton(cifrado = False)
-boton_cifrar.clicked.connect(lambda : botonHill(img, True))
-#boton_descifrar.clicked.connect(lambda : botonDesplazamiento(res_clave.text(), input_aDescifrar, output_descifrado, False))
+boton_cifrar.clicked.connect(lambda : botonHill(img_c, True))
+boton_descifrar.clicked.connect(lambda : botonHill(img_d, True))
+boton_limpiar = QPushButton(text = "Limpiar")
+boton_limpiar.setStyleSheet(
+"""
+QPushButton {
+    border:1px solid #161616;
+    border-radius:5%;
+    padding:5px;
+    background:#0B3862;
+    color:white;
+}
+QPushButton:hover {
+    background-color:#145795;
+    font: bold;
+}
+"""
+)
+boton_limpiar.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+boton_limpiar.setFixedWidth(150)
+boton_limpiar.clicked.connect(lambda: clean(gridHill))
+def clean(layout):
+    layout.itemAt(0).widget().deleteLater()
+    layout.itemAt(1).widget().deleteLater()
+    img_c = Template()
+    img_d = Template()
+    gridHill.addWidget(img_c, 1, 0, 3, 1)
+    gridHill.addWidget(img_d, 1, 2, 3, 1)
+
 gridHill.addWidget(txt_img, 0, 0)
-#gridHill.addWidget(txt_result, 0, 1)
-#gridHill.addWidget(boton_descifrar, 2, 1)
-gridHill.addWidget(boton_cifrar, 2, 0)
-
-
+gridHill.addWidget(txt_img_d, 0, 2)
+gridHill.addWidget(boton_descifrar, 1, 1, -1, 1)
+gridHill.addWidget(boton_cifrar, 0, 1, -1, 1)
+gridHill.addWidget(boton_limpiar, 2, 1, -1, 1)
 
 criptanalysis = QtWidgets.QWidget()
 tabWidget.addTab(criptanalysis, "Criptanálisis")
@@ -423,7 +426,7 @@ QTabWidget::pane {
 QTabBar::tab {
     background: #0B3862;
     color: white;
-    font-size: 17px;
+    font-size: 20px;
     min-width: 200px;
     min-height: 30px;
     padding: 2px;
@@ -444,7 +447,7 @@ QMenuBar{
     background-color: #0B3862;
     color: #51CBFF;
     border-radius: 5px;
-    font-size: 20px;
+    font-size: 22px;
     }
 QMenu::item {
     height: 42px;
