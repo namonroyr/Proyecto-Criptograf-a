@@ -6,7 +6,7 @@ import string
 class substitution:
     freqs = [.082, .015, .028, .043, .127, .022, .020, .061, .070, .002, .008, .040, .024, .067, .075, .019, .001, .060,
              .063, .091, .028, .010, .023, .001, .020, .001]
-    ALPHABETfreq = {string.ascii_lowercase[i]: freqs[i] for i in range(26)}
+    ALPHABETfreq = {string.ascii_lowercase[i]: substitution.freqs[i] for i in range(26)}
 
     DIGRAMAS = {'he': 0.0128, 'th': 0.0152, 'in': 0.0094, 'er': 0.0094, 'an': 0.0084, 're': 0.0064, 'nd': 0.0063,
                 'at': 0.0059, 'on': 0.0057, 'nt': 0.0056, 'ha': 0.0056, 'es': 0.0056, 'st': 0.0055, 'en': 0.0055,
