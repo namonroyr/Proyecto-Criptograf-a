@@ -2,7 +2,7 @@ import sys
 import math
 import numpy as np
 import cv2
-from egcd import egcd
+import imageio
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QImage, QPalette, QBrush, QColor
@@ -151,6 +151,7 @@ class PhotoLabel(QLabel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAlignment(Qt.AlignCenter)
+        #self.resize(300,650)
         self.setText('\n\n Arrastre la imagen aquí \n\n')
         self.setStyleSheet('''
         QLabel {
@@ -170,10 +171,10 @@ class Template(QWidget):
         super().__init__()
         self.photo = PhotoLabel()
         self.file = ""
+        self.setAcceptDrops(True)
         grid = QGridLayout(self)
         grid.addWidget(self.photo, 0, 0)
-        self.setAcceptDrops(True)
-        self.resize(300, 450)
+        self.resize(self.sizeHint())
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasImage:
@@ -225,21 +226,23 @@ def botonHill(input, encriptar):
     image_file_name = input.file
     img_name = image_file_name.split('.')[0]
     img_extension = image_file_name.split('.')[1]
-    file_ext = ['jpg','png']
+    file_ext = ['jpg','png', 'jpeg']
     if image_file_name != "" and img_extension in file_ext:
-        img, original_shape = read_image(image_file_name)
-        criptosistema_Hill = hill.Hill(img)
+        img = imageio.imread(image_file_name)
         if encriptar == True:
-            img_enc_vec = criptosistema_Hill.encriptar(img[0])
-            encoded_img = img_enc_vec.reshape(original_shape)
-            # writing encrypted data in image
-            encoded_img_name = '{0}-encoded.{1}'.format(img_name, img_extension)
-            print(encoded_img_name)
-            encoded_img.astype(np.uint8)
-            cv2.imwrite(encoded_img_name, encoded_img)
-            QMessageBox.information(None, 'Éxito', 'Encriptación realizada, puede encrontrar la imagen encriptada en: '+encoded_img_name, QMessageBox.Ok)
-        #elif encriptar == False:
-            #criptosistema_Hill.desencriptar(input, output)
+            criptosistema_Hill = hill.Hill(img, img_name)
+            encoded_img_name = criptosistema_Hill.encriptar(img_name)
+            QMessageBox.information(None, 'Éxito', 'Encriptación realizada, puede encrontrar la imagen encriptada en: '+encoded_img_name+'\n'+'La clave con la que se encriptó se encuentra en: '+image_file_name+'_key.png', QMessageBox.Ok)
+            img_d.open_image(encoded_img_name)
+        elif encriptar == False and txt_key.text() !='':
+            key = txt_key.text()
+            img_dec_vec = hill.desencriptar(img, key)
+            decoded_img_name = '{0}-descifrada.{1}'.format(img_name, img_extension)
+            imageio.imwrite(decoded_img_name, img_dec_vec)
+            QMessageBox.information(None, 'Éxito', 'Desencriptación realizada, puede encrontrar la imagen desencriptada en: '+decoded_img_name, QMessageBox.Ok)
+            img_c.open_image(decoded_img_name)
+        else:
+            QMessageBox.critical(None, 'Clave no ingresada', 'Sleccione el archivo que contiene la clave para descifrar la imagen (.png)', QMessageBox.Ok)
     else:
         QMessageBox.critical(None, 'Imagen no ingresada', 'Arrastre una imagen para procesar o ingrese una imagen con formato válido (.jpg, .png)', QMessageBox.Ok)
 
@@ -254,11 +257,11 @@ def crearBoton(cifrado):
             border:1px solid #161616;
             border-radius:5%;
             padding:5px;
-            background:#0B3862;
+            background:#145795;
             color:white;
         }
         QPushButton:hover {
-            background-color:#145795;
+            background-color:#0B3862;
             font: bold;
         }
         """
@@ -271,15 +274,6 @@ def limpiarCampos():
     res_clave.setText("")
     for i in [input_aCifrar, input_aDescifrar, output_cifrado, output_descifrado]:
         i.setPlainText("")
-
-def read_image(image_path):
-    """ Read an image and return a one hot vector of the image"""
-    img = cv2.imread(image_path, 0)
-    print(img)
-    reshape_value = 1
-    for i in img.shape:
-        reshape_value *= i
-    return img.reshape((1, reshape_value)), img.shape
 
 def escogerCriptosistema():
     if str(menu.currentText()) == "Criptosistema Afín":
@@ -331,8 +325,8 @@ app = QApplication(sys.argv)
 app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
 window = QtWidgets.QMainWindow()
 window.setWindowTitle("CriptoTool")
-window.setFixedWidth(1100)
-window.setFixedHeight(735)
+window.setFixedWidth(1200)
+window.setFixedHeight(770)
 #window.setStyleSheet("background: #ffffff;")
 
 font = QtGui.QFont()
@@ -342,7 +336,7 @@ QApplication.setFont(font)
 #### Añade todos los elementos ####
 #Tab
 tabWidget = QtWidgets.QTabWidget(window)
-tabWidget.setGeometry(QtCore.QRect(25, 55, 1050, 650))
+tabWidget.setGeometry(QtCore.QRect(25, 55, 1150, 700))
 tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
 tabWidget.setObjectName("tabWidget")
 cifrado = QtWidgets.QWidget()
@@ -355,9 +349,7 @@ tabWidget.addTab(Hill, "Hill - Imagen")
 gridHill = QGridLayout(Hill)
 gridHill.setGeometry(QtCore.QRect(10, 10, 1030, 600))
 img_c = Template()
-gridHill.addWidget(img_c, 1, 0, 3, 1)
 img_d = Template()
-gridHill.addWidget(img_d, 1, 2, 3, 1)
 txt_img = QLabel()
 txt_img.setText("Imagen a encriptar / encriptada: ")
 txt_img.setAlignment(Qt.AlignCenter)
@@ -375,10 +367,10 @@ QLabel {
     font-family: Segoe UI;
 }''')
 #txt_result.setText("El resultado de su imagen aparece aquí: ")
-boton_cifrar = crearBoton(cifrado = True)
-boton_descifrar = crearBoton(cifrado = False)
-boton_cifrar.clicked.connect(lambda : botonHill(img_c, True))
-boton_descifrar.clicked.connect(lambda : botonHill(img_d, True))
+boton_cifrar_hill = crearBoton(cifrado = True)
+boton_descifrar_hill = crearBoton(cifrado = False)
+boton_cifrar_hill.clicked.connect(lambda : botonHill(img_c, True))
+boton_descifrar_hill.clicked.connect(lambda : botonHill(img_d, False))
 boton_limpiar = QPushButton(text = "Limpiar")
 boton_limpiar.setStyleSheet(
 """
@@ -393,24 +385,73 @@ QPushButton:hover {
     background-color:#145795;
     font: bold;
 }
-"""
-)
+""")
 boton_limpiar.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_limpiar.setFixedWidth(150)
 boton_limpiar.clicked.connect(lambda: clean(gridHill))
 def clean(layout):
-    layout.itemAt(0).widget().deleteLater()
-    layout.itemAt(1).widget().deleteLater()
+    global img_c, img_d, boton_cifrar_hill, boton_descifrar_hill
+    txt_key.setText('')
+    img_c.setParent(None)
+    img_d.setParent(None)
+    boton_cifrar_hill.setParent(None)
+    boton_descifrar_hill.setParent(None)
     img_c = Template()
     img_d = Template()
-    gridHill.addWidget(img_c, 1, 0, 3, 1)
-    gridHill.addWidget(img_d, 1, 2, 3, 1)
+    boton_cifrar_hill = crearBoton(cifrado = True)
+    boton_descifrar_hill = crearBoton(cifrado = False)
+    boton_cifrar_hill.clicked.connect(lambda : botonHill(img_c, True))
+    boton_descifrar_hill.clicked.connect(lambda : botonHill(img_d, False))
+    gridHill.addWidget(img_c, 1, 0, 4, 1)
+    gridHill.addWidget(img_d, 1, 2, 4, 1)
+    gridHill.addWidget(boton_cifrar_hill, 2, 1)
+    gridHill.addWidget(boton_descifrar_hill, 3, 1)
 
+boton_browsekey = QPushButton(text = "Clave")
+boton_browsekey.setStyleSheet(
+"""
+QPushButton {
+    border:1px solid #161616;
+    border-radius:5%;
+    padding:5px;
+    background:#0B3862;
+    color:white;
+}
+QPushButton:hover {
+    background-color:#145795;
+    font: bold;
+}
+""")
+boton_browsekey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+boton_browsekey.setFixedWidth(150)
+boton_browsekey.clicked.connect(lambda: browse_key())
+def browse_key():
+    fname = QFileDialog.getOpenFileName(None, 'Select key file', QtCore.QDir.rootPath())
+    txt_key.setText(fname[0])
+txt_key = QLabel()
+txt_key.setStyleSheet('''
+QLabel {
+    border:1px solid #161616;
+}''')
+boton_key = QPushButton(text = "Clave")
+boton_key.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+boton_key.setFixedWidth(150)
+boton_key.clicked.connect(lambda: info())
+def info():
+    QMessageBox.information(None, 'Info', 'La clave para encriptar (Involutory Key) se genera automáticamente y se almacena en un archivo .png', QMessageBox.Ok)
+txt_key2 = QLabel()
+txt_key2.setText('*Nota: Siempre limpiar campos antes de \n encriptar/desencriptar')
+gridHill.addWidget(img_c, 1, 0, 6, 1)
+gridHill.addWidget(img_d, 1, 2, 6, 1)
 gridHill.addWidget(txt_img, 0, 0)
 gridHill.addWidget(txt_img_d, 0, 2)
-gridHill.addWidget(boton_descifrar, 1, 1, -1, 1)
-gridHill.addWidget(boton_cifrar, 0, 1, -1, 1)
-gridHill.addWidget(boton_limpiar, 2, 1, -1, 1)
+gridHill.addWidget(boton_cifrar_hill, 2, 1)
+gridHill.addWidget(boton_descifrar_hill, 3, 1)
+gridHill.addWidget(boton_limpiar, 5, 1)
+gridHill.addWidget(boton_key, 8, 0)
+gridHill.addWidget(txt_key2, 9, 0)
+gridHill.addWidget(boton_browsekey, 8, 2)
+gridHill.addWidget(txt_key, 9, 2)
 
 criptanalysis = QtWidgets.QWidget()
 tabWidget.addTab(criptanalysis, "Criptanálisis")
