@@ -3,6 +3,7 @@ import math
 import numpy as np
 import imageio
 import vigenere as vg
+import substitution as sb
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QImage, QPalette, QBrush, QColor
@@ -275,7 +276,17 @@ def botonVigenere(clave, input, output, encriptar):
         output.setPlainText(vg.encriptar(texto_cifrado, clave))
     else:
         output.setPlainText(vg.decriptar(texto_cifrado, clave))
-
+def botonSustitucion(clave, input, output, encriptar):
+    clave = ''.join([i for i in clave if i != ' ']).lower().split(',')
+    clave = { i.split(':')[0]: i.split(':')[1] for i in clave}
+    texto_cifrado = input.toPlainText().strip()
+    sus = sb.substitution(texto_cifrado)
+    if encriptar:
+        sus.permutar(clave)
+        output.setPlainText(sus.permutado.upper())
+    else:
+        sus.invert()
+        output.setPlainText(sus.permutado.upper())
 
 def crearBoton(cifrado):
     if cifrado:
@@ -367,7 +378,16 @@ def escogerCriptosistema():
             lambda: botonVigenere(res_clave.text(), input_aDescifrar, output_descifrado, False))
         gridcifrado.addWidget(boton_descifrar, 7, 1)
         gridcifrado.addWidget(boton_cifrar, 7, 0)
-
+    elif str(menu.currentText()) == "Criptosistema por Sustitución":
+        txt_clave.setText("Ingrese la regla de sustitución (letra seguido por \":\" y la letra que la sustituye) separado por comas:")
+        limpiarCampos()
+        boton_cifrar = crearBoton(cifrado=True)
+        boton_descifrar = crearBoton(cifrado=False)
+        boton_cifrar.clicked.connect(lambda: botonSustitucion(res_clave.text(), input_aCifrar, output_cifrado, True))
+        boton_descifrar.clicked.connect(
+            lambda: botonSustitucion(res_clave.text(), input_aDescifrar, output_descifrado, False))
+        gridcifrado.addWidget(boton_descifrar, 7, 1)
+        gridcifrado.addWidget(boton_cifrar, 7, 0)
 
 # Crea la ventana
 app = QApplication(sys.argv)

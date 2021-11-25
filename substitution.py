@@ -1,12 +1,14 @@
 import math as mth
 import functools as ft
 import string
-
+from typing import List, Union, Any
+freqs: list[Union[float, Any]] = [.082, .015, .028, .043, .127, .022, .020, .061, .070, .002, .008, .040, .024, .067, .075, .019, .001, .060,
+             .063, .091, .028, .010, .023, .001, .020, .001]
 
 class substitution:
-    freqs = [.082, .015, .028, .043, .127, .022, .020, .061, .070, .002, .008, .040, .024, .067, .075, .019, .001, .060,
+    freqs: list[Union[float, Any]] = [.082, .015, .028, .043, .127, .022, .020, .061, .070, .002, .008, .040, .024, .067, .075, .019, .001, .060,
              .063, .091, .028, .010, .023, .001, .020, .001]
-    ALPHABETfreq = {string.ascii_lowercase[i]: substitution.freqs[i] for i in range(26)}
+    ALPHABETfreq = {string.ascii_lowercase[i]: freqs[i] for i in range(26)}
 
     DIGRAMAS = {'he': 0.0128, 'th': 0.0152, 'in': 0.0094, 'er': 0.0094, 'an': 0.0084, 're': 0.0064, 'nd': 0.0063,
                 'at': 0.0059, 'on': 0.0057, 'nt': 0.0056, 'ha': 0.0056, 'es': 0.0056, 'st': 0.0055, 'en': 0.0055,
@@ -33,6 +35,9 @@ class substitution:
         return [self.work_text[i:i + 3] for i in range(len(self.work_text) - 3)]
 
     def permutar(self, tabla: dict):
+        for u in string.ascii_lowercase:
+            if u not in tabla:
+                tabla[u] = u
         if tabla != self.key:
             self.keychain.append(tabla)
             self.key = self.keychain[-1]
@@ -47,4 +52,4 @@ class substitution:
             self.permutar(self.key)
 
     def invert(self):
-        self.permutar({self.key[u]: u for u in self.key})
+        self.permutar({v: k for k,v in self.key.items()})
