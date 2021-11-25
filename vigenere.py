@@ -17,7 +17,7 @@ def encriptar(texto: str, llave: str) -> str:
     s = [alphabet[texto[n]] for n in range(len(texto))]
     t = [alphabet[llave[n]] for n in range(len(llave))]
     r = [(s[i] + t[i % (len(t))]) % 26 for i in range(len(s))]
-    return ''.join([string.ascii_lowercase[i] for i in r])
+    return ''.join([string.ascii_lowercase[i] for i in r]).upper()
 
 
 def kasiski(texto: str) -> list:
@@ -76,10 +76,12 @@ def Mg(y: str) -> list[float]:
 
 def decriptar(texto: str, llave: str) -> str:
     plano: str = ''
+    texto = texto.lower()
+    texto = ''.join([i for i in texto if i in string.ascii_lowercase])
     for i in range(len(texto)):
         inverso = 26 - (alphabet[llave[i % len(llave)]])
         plano = plano + string.ascii_lowercase[(alphabet[texto[i]] + inverso) % 26]
-    return plano
+    return plano.upper()
 
 
 def examinarM(subcadenas: list[str], m: int) -> float:
