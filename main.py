@@ -388,7 +388,9 @@ def escogerCriptosistema():
             lambda: botonSustitucion(res_clave.text(), input_aDescifrar, output_descifrado, False))
         gridcifrado.addWidget(boton_descifrar, 7, 1)
         gridcifrado.addWidget(boton_cifrar, 7, 0)
-
+def escogerCriptoanalisis():
+    if str(menu.currentText()) == "Criptoanalisis Afín":
+        pass
 # Crea la ventana
 app = QApplication(sys.argv)
 app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
@@ -535,8 +537,40 @@ gridHill.addWidget(txt_key2, 9, 0)
 gridHill.addWidget(boton_browsekey, 8, 2)
 gridHill.addWidget(txt_key, 9, 2)
 
+#----------Criptoanalisis-----------------
+criptoitems = ["Criptoanalisis Afín", "Criptoanalisis Desplazamiento", "Criptoanalisis Sustitución",
+                  "Criptoanalisis Permutación",
+                  "Criptoanalisis Vigenere"]
+#----------Menu---------------------------
+menu_cripto = QComboBox()
+menu_cripto.setStyleSheet(
+    """
+    QComboBox {
+        padding:5px;
+        border:1px solid #161616;
+        border-radius:3%;
+    }
+    QComboBox::drop-down
+    {
+        border: 0px;
+        width:20px;
+    }
+    QComboBox::down-arrow {
+        image: url(resources/dropdown.png);
+        width: 12px;
+        height: 12px;
+    }
+    QComboBox::drop-down:hover {
+       background-color:#E3E3E3;
+    }
+    """)
+menu_cripto.addItems(criptoitems)
+menu_cripto.currentTextChanged.connect(escogerCriptoanalisis)
+menu_cripto.setCurrentIndex(0)
 criptanalysis = QtWidgets.QWidget()
-tabWidget.addTab(criptanalysis, "Criptanálisis")
+tabWidget.addTab(criptanalysis, "Criptoanálisis")
+gridCripto = QGridLayout(criptanalysis)
+gridCripto.setGeometry(QtCore.QRect(10, 10, 1030, 600))
 tabWidget.setStyleSheet("""
 QTabWidget::tab-bar {
     left: 1px; /* move to the right by 5px */
@@ -561,6 +595,7 @@ QTabBar::tab:selected, QTabBar::tab:hover {
 QTabBar::tab:!selected {
     margin-top: 3px;
 }""")
+gridCripto.addWidget(menu_cripto,0,0)
 tabWidget.setCurrentIndex(0)
 menubar = QtWidgets.QMenuBar(window)
 menubar.setGeometry(QtCore.QRect(0, 0, 500, 200))
