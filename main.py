@@ -1,6 +1,7 @@
 import sys
 import math
 import numpy as np
+import string
 import imageio
 import vigenere as vg
 import substitution as sb
@@ -560,6 +561,24 @@ gridHill.addWidget(txt_key, 9, 2)
 criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Criptoanálisis Hill",
                   "Criptoanálisis Permutación", "Criptoanálisis Sustitución",
                   "Criptoanálisis Vigenere"]
+
+def vigenereAnalisis(input_criptoanalysis,output_descifrado):
+    texto = input_criptoanalysis.toPlainText().strip()
+    res = vg.vigenereAttack(texto)
+    retorno = ''
+    for j,k in res:
+        retorno = retorno + 'La clave podría ser ' + j.upper() + '. De ser ese el caso el texto descifrado es:\n' + k + '\n'
+    output_descifrado.setPlainText(retorno)
+def desplazamientoAnalisis(input_criptoanalysis,output_descifrado):
+    texto = input_criptoanalysis.toPlainText().strip()
+    texto = texto.upper()
+    texto = [i for i in texto if i in string.ascii_uppercase]
+    output = ""
+    for i in range(1,26):
+        lista = [(abc[k]+i) % 26 for k in texto]
+        lista = [string.ascii_uppercase[k] for k in lista]
+        output = output + "Con desplazamiento {}: \n".format(i) + ''.join(lista) + "\n"
+    output_descifrado.setPlainText(output)
 #------menu---------------
 menu_cripto = QComboBox()
 menu_cripto.setStyleSheet(
@@ -598,29 +617,44 @@ stackedLayout = QStackedLayout()
 #Afin**************************
 afin_ca = QWidget()
 afinLayout = QGridLayout()
+input_label = QLabel()
+input_label.setText("Texto Cifrado")
 input_criptoanalysis = QPlainTextEdit()
 input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+decript_label = QLabel()
+decript_label.setText("Llave / Texto Claro")
 output_descifrado = QPlainTextEdit()
 output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifrado.setReadOnly(True)
-output_descifrado.verticalScrollBar()
-afinLayout.addWidget(input_criptoanalysis,0,1)
-afinLayout.addWidget(output_descifrado,0,2)
+boton_submit = QPushButton(text="Submit")
+afinLayout.addWidget(input_label,0,1)
+afinLayout.addWidget(decript_label,0,2)
+afinLayout.addWidget(input_criptoanalysis,1,1)
+afinLayout.addWidget(output_descifrado,1,2)
+afinLayout.addWidget(boton_submit,2,1)
 afin_ca.setLayout(afinLayout)
 stackedLayout.addWidget(afin_ca)
 #Desplazamiento*********************************
 des_ca = QWidget()
 desLayout = QGridLayout()
+input_label = QLabel()
+input_label.setText("Texto Cifrado")
 input_criptoanalysis = QPlainTextEdit()
 input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+decript_label = QLabel()
+decript_label.setText("Llave / Texto Claro")
 output_descifrado = QPlainTextEdit()
 output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifrado.setReadOnly(True)
-output_descifrado.verticalScrollBar()
-desLayout.addWidget(input_criptoanalysis,0,1)
-desLayout.addWidget(output_descifrado,0,2)
+boton_submit = QPushButton(text="Submit")
+desLayout.addWidget(input_label,0,1)
+desLayout.addWidget(decript_label,0,2)
+desLayout.addWidget(input_criptoanalysis,1,1)
+desLayout.addWidget(output_descifrado,1,2)
+desLayout.addWidget(boton_submit,2,1)
 des_ca.setLayout(desLayout)
 stackedLayout.addWidget(des_ca)
+boton_submit.clicked.connect(lambda: desplazamientoAnalisis(input_criptoanalysis, output_descifrado))
 #Hill**************************
 hill_ca = QWidget()
 hillLayout = QGridLayout()
@@ -701,6 +735,70 @@ def switchPage():
     stackedLayout.setCurrentIndex(menu_cripto.currentIndex())
 menu_cripto.currentTextChanged.connect(switchPage)
 
+#Permutación*********************************
+permutacion_ca = QWidget()
+permutacionLayout = QGridLayout()
+input_label = QLabel()
+input_label.setText("Texto Cifrado")
+input_criptoanalysis = QPlainTextEdit()
+input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+decript_label = QLabel()
+decript_label.setText("Llave / Texto Claro")
+output_descifrado = QPlainTextEdit()
+output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifrado.setReadOnly(True)
+boton_submit = QPushButton(text="Submit")
+permutacionLayout.addWidget(input_label,0,1)
+permutacionLayout.addWidget(decript_label,0,2)
+permutacionLayout.addWidget(input_criptoanalysis,1,1)
+permutacionLayout.addWidget(output_descifrado,1,2)
+permutacionLayout.addWidget(boton_submit,2,1)
+permutacion_ca.setLayout(permutacionLayout)
+stackedLayout.addWidget(permutacion_ca)
+
+#Sustitución*********************************
+sustitucion_ca = QWidget()
+sustitucionLayout = QGridLayout()
+input_label = QLabel()
+input_label.setText("Texto Cifrado")
+input_criptoanalysis = QPlainTextEdit()
+input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+decript_label = QLabel()
+decript_label.setText("Llave / Texto Claro")
+output_descifrado = QPlainTextEdit()
+output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifrado.setReadOnly(True)
+boton_submit = QPushButton(text="Submit")
+sustitucionLayout.addWidget(input_label,0,1)
+sustitucionLayout.addWidget(decript_label,0,2)
+sustitucionLayout.addWidget(input_criptoanalysis,1,1)
+sustitucionLayout.addWidget(output_descifrado,1,2)
+sustitucionLayout.addWidget(boton_submit,2,1)
+sustitucion_ca.setLayout(sustitucionLayout)
+stackedLayout.addWidget(sustitucion_ca)
+
+#Vigenere*********************************
+vigenere_ca = QWidget()
+vigenereLayout = QGridLayout()
+input_label = QLabel()
+input_label.setText("Texto Cifrado")
+input_criptoanalysis = QPlainTextEdit()
+input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+decript_label = QLabel()
+decript_label.setText("Llave / Texto Claro")
+output_descifrado = QPlainTextEdit()
+output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifrado.setReadOnly(True)
+boton_submit = QPushButton(text="Submit")
+vigenereLayout.addWidget(input_label,0,1)
+vigenereLayout.addWidget(decript_label,0,2)
+vigenereLayout.addWidget(input_criptoanalysis,1,1)
+vigenereLayout.addWidget(output_descifrado,1,2)
+vigenereLayout.addWidget(boton_submit,2,1)
+vigenere_ca.setLayout(vigenereLayout)
+stackedLayout.addWidget(vigenere_ca)
+boton_submit.clicked.connect(lambda: vigenereAnalisis(input_criptoanalysis,output_descifrado))
+
 #--------------------------funciones criptoanalisis--------------------------
 def criptanalisisHill(txt_plano, txt_cifrado):
     p = txt_plano.toPlainText().strip().upper()
@@ -731,34 +829,92 @@ def clean2(layout):
     for i in reversed(range(layout.count())):
         if layout.itemAt(i):
             layout.itemAt(i).widget().setParent(None)
-
 def escogerCriptoanalisis():
-    if str(menu_cripto.currentText()) == "Criptoanálisis Afín":
+    if str(menu_cripto.currentText()) == "Criptoanalisis Afín":
         clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
+        gridCripto.addWidget(menu_cripto, 1, 0)
         input_criptoanalysis = QPlainTextEdit()
         input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         output_descifrado = QPlainTextEdit()
         output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_descifrado.setReadOnly(True)
-        gridCripto.addWidget(input_criptoanalysis,0,1)
-        gridCripto.addWidget(output_descifrado,0,2)
-        output_descifrado.verticalScrollBar()
-    elif str(menu_cripto.currentText()) == "Criptoanálisis Desplazamiento":
+        gridCripto.addWidget(input_criptoanalysis,1,1)
+        gridCripto.addWidget(output_descifrado,1,2)
+        boton_submit = QPushButton(text="submit")
+        gridCripto.addWidget(boton_submit,2,1)
+        input_label = QLabel()
+        input_label.setText("Texto Cifrado")
+        gridCripto.addWidget(input_label,0,1)
+        decript_label = QLabel()
+        decript_label.setText("Llave / Texto Claro")
+        gridCripto.addWidget(decript_label,0,2)
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Desplazamiento":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 1, 0)
+        input_criptoanalysis = QPlainTextEdit()
+        input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+        output_descifrado = QPlainTextEdit()
+        output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+        output_descifrado.setReadOnly(True)
+        gridCripto.addWidget(input_criptoanalysis, 1, 1)
+        gridCripto.addWidget(output_descifrado, 1, 2)
+        boton_submit = QPushButton(text="submit")
+        gridCripto.addWidget(boton_submit, 2, 1)
+        input_label = QLabel()
+        input_label.setText("Texto Cifrado")
+        gridCripto.addWidget(input_label, 0, 1)
+        decript_label = QLabel()
+        decript_label.setText("Llave / Texto Claro")
+        gridCripto.addWidget(decript_label, 0, 2)
+        boton_submit.clicked.connect(lambda: desplazamientoAnalisis(input_criptoanalysis, output_descifrado))
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Sustitución":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanálisis Sustitución":
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Permutación":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanálisis por Permutación":
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Vigenere":
         clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanálisis Vigenere":
+        gridCripto.addWidget(menu_cripto, 1, 0)
+        input_criptoanalysis = QPlainTextEdit()
+        input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+        output_descifrado = QPlainTextEdit()
+        output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+        output_descifrado.setReadOnly(True)
+        gridCripto.addWidget(input_criptoanalysis, 1, 1)
+        gridCripto.addWidget(output_descifrado, 1, 2)
+        boton_submit = QPushButton(text="submit")
+        gridCripto.addWidget(boton_submit, 2, 1)
+        input_label = QLabel()
+        input_label.setText("Texto Cifrado")
+        gridCripto.addWidget(input_label, 0, 1)
+        decript_label = QLabel()
+        decript_label.setText("Llave / Texto Claro")
+        gridCripto.addWidget(decript_label, 0, 2)
+        boton_submit.clicked.connect(lambda: vigenereAnalisis(input_criptoanalysis,output_descifrado))
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Hill":
         clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanálisis Hill":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
+        gridCripto.addWidget(menu_cripto, 1, 0)
+        input_criptoanalysis = QPlainTextEdit()
+        input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+        output_descifrado = QPlainTextEdit()
+        output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+        gridCripto.addWidget(input_criptoanalysis, 1, 1)
+        gridCripto.addWidget(output_descifrado, 1, 2)
+        boton_submit = QPushButton(text="submit")
+        gridCripto.addWidget(boton_submit, 2, 1)
+        input_label = QLabel()
+        input_label.setText("Texto Cifrado")
+        gridCripto.addWidget(input_label, 0, 1)
+        decript_label = QLabel()
+        decript_label.setText("Texto Claro")
+        gridCripto.addWidget(decript_label, 0, 2)
+        matrix_text = QLabel()
+        matrix_text.setText("Matrix")
+        Matrix = QPlainTextEdit()
+        Matrix.setReadOnly(True)
+        gridCripto.addWidget(matrix_text,2,2)
+        gridCripto.addWidget(Matrix,3,2)
 """
 
 #MenuBar
