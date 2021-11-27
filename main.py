@@ -4,6 +4,7 @@ import numpy as np
 import imageio
 import vigenere as vg
 import substitution as sb
+import string
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QImage, QPalette, QBrush, QColor
@@ -12,8 +13,8 @@ from PyQt5.QtCore import (Qt, QFile, QDate, QTime, QSize, QTimer, QRect, QRegExp
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QLabel, QDialog, QTableWidget, QMenu,
                              QTableWidgetItem, QAbstractItemView, QLineEdit, QPushButton, QTabWidget,
                              QActionGroup, QAction, QMessageBox, QFrame, QStyle, QGridLayout,
-                             QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QGroupBox,
-                             QDateEdit, QComboBox, QPushButton, QVBoxLayout, QFileDialog, QPlainTextEdit, QLineEdit,
+                             QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QGroupBox, QStackedLayout,
+                             QDateEdit, QComboBox, QPushButton, QFileDialog, QPlainTextEdit, QLineEdit,
                              QTextEdit)
 from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegion, QClipboard,
                          QRegExpValidator)
@@ -27,8 +28,8 @@ abc = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7, "I": 8, "
        "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25}
 inv_abc = {value: key for key, value in abc.items()}
 
-criptosistemas = ["Criptosistema Afín", "Criptosistema por Desplazamiento", "Criptosistema por Sustitución",
-                  "Criptosistema por Permutación",
+criptosistemas = ["Criptosistema Afín", "Criptosistema por Desplazamiento",
+                  "Criptosistema por Permutación", "Criptosistema por Sustitución",
                   "Criptosistema de Vigenere"]
 
 
@@ -398,7 +399,6 @@ window.setWindowTitle("CriptoTool")
 window.setFixedWidth(1200)
 window.setFixedHeight(770)
 # window.setStyleSheet("background: #ffffff;")
-
 font = QtGui.QFont()
 font.setFamily("Segoe UI SemiLight")
 font.setPointSize(10)
@@ -409,6 +409,30 @@ tabWidget = QtWidgets.QTabWidget(window)
 tabWidget.setGeometry(QtCore.QRect(25, 55, 1150, 700))
 tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
 tabWidget.setObjectName("tabWidget")
+tabWidget.setStyleSheet("""
+QTabWidget::tab-bar {
+    left: 1px; /* move to the right by 5px */
+}
+QTabWidget::pane {
+    border: 1px solid lightgray;
+    top:-1px;
+    background-color: #FFFFFF;
+    }
+QTabBar::tab {
+    background: #0B3862;
+    color: white;
+    font-size: 20px;
+    min-width: 200px;
+    min-height: 30px;
+    padding: 2px;
+}
+QTabBar::tab:selected, QTabBar::tab:hover {
+    background: #145795;
+    font: bold;
+                        }
+QTabBar::tab:!selected {
+    margin-top: 3px;
+}""")
 cifrado = QtWidgets.QWidget()
 tabWidget.addTab(cifrado, "Cifrado/Descifrado")
 gridcifrado = QGridLayout(cifrado)
@@ -436,7 +460,6 @@ QLabel {
     font-size: 22px;
     font-family: Segoe UI;
 }''')
-# txt_result.setText("El resultado de su imagen aparece aquí: ")
 boton_cifrar_hill = crearBoton(cifrado=True)
 boton_descifrar_hill = crearBoton(cifrado=False)
 boton_cifrar_hill.clicked.connect(lambda: botonHill(img_c, True))
@@ -499,11 +522,9 @@ boton_browsekey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_browsekey.setFixedWidth(150)
 boton_browsekey.clicked.connect(lambda: browse_key())
 
-
 def browse_key():
     fname = QFileDialog.getOpenFileName(None, 'Select key file', QtCore.QDir.rootPath())
     txt_key.setText(fname[0])
-
 
 txt_key = QLabel()
 txt_key.setStyleSheet('''
@@ -514,7 +535,6 @@ boton_key = QPushButton(text="Clave")
 boton_key.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_key.setFixedWidth(150)
 boton_key.clicked.connect(lambda: info())
-
 
 def info():
     QMessageBox.information(None, 'Info',
@@ -537,71 +557,9 @@ gridHill.addWidget(boton_browsekey, 8, 2)
 gridHill.addWidget(txt_key, 9, 2)
 
 #----------Criptoanalisis-----------------
-criptoitems = ["Criptoanalisis Afín", "Criptoanalisis Desplazamiento", "Criptoanalisis Sustitución",
-                  "Criptoanalisis Permutación",
-                  "Criptoanalisis Vigenere","Criptoanalisis Hill"]
-criptanalysis = QtWidgets.QWidget()
-tabWidget.addTab(criptanalysis, "Criptoanálisis")
-gridCripto = QGridLayout(criptanalysis)
-gridCripto.setGeometry(QtCore.QRect(10, 10, 1030, 600))
-tabWidget.setStyleSheet("""
-QTabWidget::tab-bar {
-    left: 1px; /* move to the right by 5px */
-}
-QTabWidget::pane {
-    border: 1px solid lightgray;
-    top:-1px;
-    background-color: #FFFFFF;
-    }
-QTabBar::tab {
-    background: #0B3862;
-    color: white;
-    font-size: 20px;
-    min-width: 200px;
-    min-height: 30px;
-    padding: 2px;
-}
-QTabBar::tab:selected, QTabBar::tab:hover {
-    background: #145795;
-    font: bold;
-                        }
-QTabBar::tab:!selected {
-    margin-top: 3px;
-}""")
-#------funcion menu-------
-def clean2(layout):
-    for i in reversed(range(layout.count())):
-        if layout.itemAt(i):
-            layout.itemAt(i).widget().setParent(None)
-
-def escogerCriptoanalisis():
-    if str(menu_cripto.currentText()) == "Criptoanalisis Afín":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-        input_criptoanalysis = QPlainTextEdit()
-        input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
-        output_descifrado = QPlainTextEdit()
-        output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
-        output_descifrado.setReadOnly(True)
-        gridCripto.addWidget(input_criptoanalysis,0,1)
-        gridCripto.addWidget(output_descifrado,0,2)
-        output_descifrado.verticalScrollBar()
-    elif str(menu_cripto.currentText()) == "Criptoanalisis Desplazamiento":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanalisis Sustitución":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanalisis por Permutación":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanalisis Vigenere":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanalisis Hill":
-        clean2(gridCripto)
-        gridCripto.addWidget(menu_cripto, 0, 0)
-
+criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Criptoanálisis Hill",
+                  "Criptoanálisis Permutación", "Criptoanálisis Sustitución",
+                  "Criptoanálisis Vigenere"]
 #------menu---------------
 menu_cripto = QComboBox()
 menu_cripto.setStyleSheet(
@@ -626,13 +584,184 @@ menu_cripto.setStyleSheet(
     }
     """)
 menu_cripto.addItems(criptoitems)
-menu_cripto.currentTextChanged.connect(escogerCriptoanalisis)
-menu_cripto.setCurrentIndex(0)
-gridCripto.addWidget(menu_cripto,0,0)
-tabWidget.setCurrentIndex(0)
-menu_cripto.setCurrentText("Criptoanalisis Afín")
-escogerCriptoanalisis()
 
+menu_cripto.setCurrentIndex(0)
+tabWidget.setCurrentIndex(0)
+#menu_cripto.setCurrentText("Criptoanálisis Afín")
+#escogerCriptoanalisis()
+criptanalysis = QWidget()
+tabWidget.addTab(criptanalysis, "Criptoanálisis")
+gridCripto = QVBoxLayout()
+criptanalysis.setLayout(gridCripto)
+gridCripto.setGeometry(QtCore.QRect(10, 10, 1030, 600))
+stackedLayout = QStackedLayout()
+#Afin**************************
+afin_ca = QWidget()
+afinLayout = QGridLayout()
+input_criptoanalysis = QPlainTextEdit()
+input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+output_descifrado = QPlainTextEdit()
+output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifrado.setReadOnly(True)
+output_descifrado.verticalScrollBar()
+afinLayout.addWidget(input_criptoanalysis,0,1)
+afinLayout.addWidget(output_descifrado,0,2)
+afin_ca.setLayout(afinLayout)
+stackedLayout.addWidget(afin_ca)
+#Desplazamiento*********************************
+des_ca = QWidget()
+desLayout = QGridLayout()
+input_criptoanalysis = QPlainTextEdit()
+input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+output_descifrado = QPlainTextEdit()
+output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifrado.setReadOnly(True)
+output_descifrado.verticalScrollBar()
+desLayout.addWidget(input_criptoanalysis,0,1)
+desLayout.addWidget(output_descifrado,0,2)
+des_ca.setLayout(desLayout)
+stackedLayout.addWidget(des_ca)
+#Hill**************************
+hill_ca = QWidget()
+hillLayout = QGridLayout()
+txt_plano = QLabel()
+txt_plano.setText("Ingrese el texto plano: ")
+input_plano = QPlainTextEdit()
+input_plano.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+txt_cifrado = QLabel()
+txt_cifrado.setText("Ingrese el correspondiente texto crifrado: ")
+input_cifrado = QPlainTextEdit()
+input_cifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+boton_getkey = QPushButton(text="Obtener Clave")
+boton_getkey.setStyleSheet(
+    """
+    QPushButton {
+        border:1px solid #161616;
+        border-radius:5%;
+        padding:5px;
+        background:#145795;
+        color:white;
+    }
+    QPushButton:hover {
+        background-color:#0B3862;
+        font: bold;
+    }
+    """)
+boton_getkey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+boton_getkey.setFixedWidth(170)
+boton_getkey.clicked.connect(lambda: criptanalisisHill(input_plano, input_cifrado))
+boton_limpiar_caHill = QPushButton(text="Limpiar Campos")
+boton_limpiar_caHill.setStyleSheet(
+    """
+QPushButton {
+    border:1px solid #161616;
+    border-radius:5%;
+    padding:5px;
+    background:#0B3862;
+    color:white;
+}
+QPushButton:hover {
+    background-color:#145795;
+    font: bold;
+}
+""")
+boton_limpiar_caHill.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+boton_limpiar_caHill.setFixedWidth(170)
+def limpiarCampos_caHill():
+    res_clave.setText("")
+    for i in [input_plano, input_cifrado, output_m, output_keyfound]:
+        i.setPlainText("")
+boton_limpiar_caHill.clicked.connect(limpiarCampos_caHill)
+txt_m = QLabel()
+txt_m.setText("Valor de m: ")
+output_m = QPlainTextEdit()
+output_m.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_m.setReadOnly(True)
+txt_keyfound = QLabel()
+txt_keyfound.setText("Clave: ")
+output_keyfound = QPlainTextEdit()
+output_keyfound.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_keyfound.setReadOnly(True)
+hillLayout.addWidget(txt_plano, 0, 0)
+hillLayout.addWidget(input_plano, 1, 0)
+hillLayout.addWidget(txt_cifrado, 2, 0)
+hillLayout.addWidget(input_cifrado, 3, 0)
+hillLayout.addWidget(boton_getkey, 0, 1, -1, 1)
+hillLayout.addWidget(boton_limpiar_caHill, 2, 1, -1, 1)
+hillLayout.addWidget(txt_m, 0, 2)
+hillLayout.addWidget(output_m, 1, 2)
+hillLayout.addWidget(txt_keyfound, 2, 2)
+hillLayout.addWidget(output_keyfound, 3, 2)
+hill_ca.setLayout(hillLayout)
+stackedLayout.addWidget(hill_ca)
+# Add the combo box and the stacked layout to the top-level layout
+gridCripto.addWidget(menu_cripto)
+gridCripto.addLayout(stackedLayout)
+def switchPage():
+    stackedLayout.setCurrentIndex(menu_cripto.currentIndex())
+menu_cripto.currentTextChanged.connect(switchPage)
+
+#--------------------------funciones criptoanalisis--------------------------
+def criptanalisisHill(txt_plano, txt_cifrado):
+    p = txt_plano.toPlainText().strip().upper()
+    c = txt_cifrado.toPlainText().strip().upper()
+    texto_cifrado = []
+    texto_plano = []
+    for i in c:
+        i_cifrado = abc[i.upper()] % 26
+        texto_cifrado.append(i_cifrado)
+    for i in p:
+        i_plano = abc[i.upper()] % 26
+        texto_plano.append(i_plano)
+    if len(texto_cifrado) == len(texto_plano):
+        v, m, k = hill.attack(texto_plano, texto_cifrado)
+        if not v:
+            error_dialog = QtWidgets.QErrorMessage()
+            error_dialog.showMessage('No se encontró una clave para los textos ingresados')
+        else:
+            output_m.setPlainText(str(m))
+            output_keyfound.setPlainText(str(k))
+    else:
+        error_dialog = QtWidgets.QErrorMessage()
+        error_dialog.showMessage('Los textos ingresados deben tener la misma longitud de caracteres')
+
+"""
+#------funcion menu-------
+def clean2(layout):
+    for i in reversed(range(layout.count())):
+        if layout.itemAt(i):
+            layout.itemAt(i).widget().setParent(None)
+
+def escogerCriptoanalisis():
+    if str(menu_cripto.currentText()) == "Criptoanálisis Afín":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+        input_criptoanalysis = QPlainTextEdit()
+        input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+        output_descifrado = QPlainTextEdit()
+        output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+        output_descifrado.setReadOnly(True)
+        gridCripto.addWidget(input_criptoanalysis,0,1)
+        gridCripto.addWidget(output_descifrado,0,2)
+        output_descifrado.verticalScrollBar()
+    elif str(menu_cripto.currentText()) == "Criptoanálisis Desplazamiento":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanálisis Sustitución":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanálisis por Permutación":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanálisis Vigenere":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanálisis Hill":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+"""
+
+#MenuBar
 menubar = QtWidgets.QMenuBar(window)
 menubar.setGeometry(QtCore.QRect(0, 0, 500, 200))
 menubar.setStyleSheet("""
@@ -739,25 +868,5 @@ gridcifrado.addWidget(txt_descifrado, 5, 1)
 gridcifrado.addWidget(output_descifrado, 6, 1)
 gridcifrado.addWidget(boton_descifrar, 7, 1)
 
-"""
-#grid = QGridLayout()
-#grid.addWidget(menu, 0, 0)
-
-#grid.addWidget(txt_clave, 1, 0)
-grid.addWidget(res_clave, 2, 0)
-grid.addWidget(txt_aCifrar, 3, 0)
-grid.addWidget(input_aCifrar, 4, 0)
-grid.addWidget(txt_cifrado, 5, 0)
-grid.addWidget(output_cifrado, 6, 0)
-grid.addWidget(boton_cifrar, 7, 0)
-
-grid.addWidget(txt_aDescifrar, 3, 1)
-grid.addWidget(input_aDescifrar, 4, 1)
-grid.addWidget(txt_descifrado, 5, 1)
-grid.addWidget(output_descifrado, 6, 1)
-grid.addWidget(boton_descifrar, 7, 1)
-
-#window.setLayout(grid)
-"""
 window.show()
 sys.exit(app.exec())

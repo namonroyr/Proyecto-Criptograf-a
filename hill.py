@@ -105,42 +105,30 @@ def attack(p_text, c_text):
     m = 2
     key = 0
     verification = False
-    while not verification:
+    while not verification and m<16:
         if (len(p_text) < pow(m,2)):
             break
         d = pow(m,2)
         n = np.random.randint(0, len(p_text)-d)
-        d = pow(m,2)
-        print(d)
         plain = np.array(p_text[n:n+d])
         cipher = np.array(c_text[n:n+d])
         p = plain.reshape(m,m)
-        print(p)
         c = cipher.reshape(m,m)
         p_sympy = sympy.Matrix(p)
         adj_p = p_sympy.adjugate() % 26
-        print(adj_p)
         det_p = round(np.linalg.det(p))%26
-        print(np.linalg.det(p))
-        print(round(np.linalg.det(p)))
-        print(det_p)
-        print(math.gcd(det_p,26))
         if det_p == 0 or math.gcd(det_p,26) != 1:
             continue
         inv_det = modInverse(det_p, 26)
-        print(inv_det)
         inv_p = (inv_det*adj_p)%26
-        print(inv_p)
         key = (np.matmul(inv_p % 26, c % 26)) % 26
-        print('**********KEY*********')
-        print(key)
         new_cal = (np.matmul(p % 26, key % 26)) % 26
-        v = new_cal == p
+        v = new_cal == c
         if v.all():
             verification = True
         else:
             m += 1
-    return m, key
+    return verification, key.shape[0], str(key)
 
 def modInverse(a, m):
     """
@@ -165,20 +153,3 @@ def modInverse(a, m):
     if (x < 0):
         x = x + m0
     return x
-
-p = "GONAVYBEATARMYA"
-c = "OAXELQLSMTKTCOQ"
-texto_cifrado = []
-texto_plano = []
-for i in c:
-    i_cifrado = abc[i.upper()] % 26
-    texto_cifrado.append(i_cifrado)
-
-for i in p:
-    i_plano = abc[i.upper()] % 26
-    texto_plano.append(i_plano)
-
-print(texto_plano)
-print(texto_cifrado)
-
-print(attack(texto_plano, texto_cifrado))
