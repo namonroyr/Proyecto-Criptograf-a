@@ -1,6 +1,7 @@
 import sys
 import math
 import numpy as np
+import string
 import imageio
 import vigenere as vg
 import substitution as sb
@@ -580,6 +581,16 @@ def vigenereAnalisis(input_criptoanalysis,output_descifrado):
     for j,k in res:
         retorno = retorno + 'La clave podría ser ' + j.upper() + '. De ser ese el caso el texto descifrado es:\n' + k + '\n'
     output_descifrado.setPlainText(retorno)
+def desplazamientoAnalisis(input_criptoanalysis,output_descifrado):
+    texto = input_criptoanalysis.toPlainText().strip()
+    texto = texto.upper()
+    texto = [i for i in texto if i in string.ascii_uppercase]
+    output = ""
+    for i in range(1,26):
+        lista = [(abc[k]+i) % 26 for k in texto]
+        lista = [string.ascii_uppercase[k] for k in lista]
+        output = output + "Con desplazamiento {}: \n".format(i) + ''.join(lista) + "\n"
+    output_descifrado.setPlainText(output)
 def escogerCriptoanalisis():
     if str(menu_cripto.currentText()) == "Criptoanalisis Afín":
         clean2(gridCripto)
@@ -617,6 +628,7 @@ def escogerCriptoanalisis():
         decript_label = QLabel()
         decript_label.setText("Llave / Texto Claro")
         gridCripto.addWidget(decript_label, 0, 2)
+        boton_submit.clicked.connect(lambda: desplazamientoAnalisis(input_criptoanalysis, output_descifrado))
     elif str(menu_cripto.currentText()) == "Criptoanalisis Sustitución":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
