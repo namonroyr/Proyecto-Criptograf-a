@@ -538,7 +538,7 @@ gridHill.addWidget(txt_key, 9, 2)
 #----------Criptoanalisis-----------------
 criptoitems = ["Criptoanalisis Afín", "Criptoanalisis Desplazamiento", "Criptoanalisis Sustitución",
                   "Criptoanalisis Permutación",
-                  "Criptoanalisis Vigenere"]
+                  "Criptoanalisis Vigenere","Criptoanalisis Hill"]
 criptanalysis = QtWidgets.QWidget()
 tabWidget.addTab(criptanalysis, "Criptoanálisis")
 gridCripto = QGridLayout(criptanalysis)
@@ -568,9 +568,34 @@ QTabBar::tab:!selected {
     margin-top: 3px;
 }""")
 #------funcion menu-------
+def clean2(layout):
+    for i in reversed(range(layout.count())):
+        if layout.itemAt(i):
+            layout.itemAt(i).widget().setParent(None)
+
 def escogerCriptoanalisis():
-    if str(menu.currentText()) == "Criptoanalisis Afín":
-        pass
+    if str(menu_cripto.currentText()) == "Criptoanalisis Afín":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+        input_criptoanalysis = QPlainTextEdit()
+        input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+        gridCripto.addWidget(input_criptoanalysis)
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Desplazamiento":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanalisis por Sustitución":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanalisis por Permutación":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Vigenere":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+    elif str(menu_cripto.currentText()) == "Criptoanalisis por Hill":
+        clean2(gridCripto)
+        gridCripto.addWidget(menu_cripto, 0, 0)
+
 #------menu---------------
 menu_cripto = QComboBox()
 menu_cripto.setStyleSheet(
