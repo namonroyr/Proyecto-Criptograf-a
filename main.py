@@ -13,7 +13,8 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QL
                              QTableWidgetItem, QAbstractItemView, QLineEdit, QPushButton, QTabWidget,
                              QActionGroup, QAction, QMessageBox, QFrame, QStyle, QGridLayout,
                              QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QGroupBox,
-                             QDateEdit, QComboBox, QPushButton, QVBoxLayout, QFileDialog, QPlainTextEdit, QLineEdit)
+                             QDateEdit, QComboBox, QPushButton, QVBoxLayout, QFileDialog, QPlainTextEdit, QLineEdit,
+                             QTextEdit)
 from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegion, QClipboard,
                          QRegExpValidator)
 from PyQt5.QtGui import QPixmap
@@ -579,11 +580,16 @@ def escogerCriptoanalisis():
         gridCripto.addWidget(menu_cripto, 0, 0)
         input_criptoanalysis = QPlainTextEdit()
         input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
-        gridCripto.addWidget(input_criptoanalysis)
+        output_descifrado = QPlainTextEdit()
+        output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+        output_descifrado.setReadOnly(True)
+        gridCripto.addWidget(input_criptoanalysis,0,1)
+        gridCripto.addWidget(output_descifrado,0,2)
+        output_descifrado.verticalScrollBar()
     elif str(menu_cripto.currentText()) == "Criptoanalisis Desplazamiento":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanalisis por Sustitución":
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Sustitución":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
     elif str(menu_cripto.currentText()) == "Criptoanalisis por Permutación":
@@ -592,7 +598,7 @@ def escogerCriptoanalisis():
     elif str(menu_cripto.currentText()) == "Criptoanalisis Vigenere":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
-    elif str(menu_cripto.currentText()) == "Criptoanalisis por Hill":
+    elif str(menu_cripto.currentText()) == "Criptoanalisis Hill":
         clean2(gridCripto)
         gridCripto.addWidget(menu_cripto, 0, 0)
 
@@ -624,6 +630,8 @@ menu_cripto.currentTextChanged.connect(escogerCriptoanalisis)
 menu_cripto.setCurrentIndex(0)
 gridCripto.addWidget(menu_cripto,0,0)
 tabWidget.setCurrentIndex(0)
+menu_cripto.setCurrentText("Criptoanalisis Afín")
+escogerCriptoanalisis()
 
 menubar = QtWidgets.QMenuBar(window)
 menubar.setGeometry(QtCore.QRect(0, 0, 500, 200))
