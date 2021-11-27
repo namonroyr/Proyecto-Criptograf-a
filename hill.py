@@ -2,6 +2,13 @@ import math
 import imageio
 import os.path
 import numpy as np
+import sympy
+
+abc = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7, "I": 8, "J": 9, "K": 10,
+       "L": 11, "M": 12, "N": 13, "O": 14, "P": 15, "Q": 16, "R": 17, "S": 18, "T": 19, "U": 20,
+       "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25}
+inv_abc = {value: key for key, value in abc.items()}
+
 
 class Hill:
     def __init__(self, img, file_name, key=None):
@@ -93,3 +100,85 @@ def desencriptar(Enc, key):
             Decrypted[i * n:(i + 1) * n, j * n:(j + 1) * n] += Dec
     Final = Decrypted[:l,:w,:]
     return Final
+
+def attack(p_text, c_text):
+    m = 2
+    key = 0
+    verification = False
+    while not verification:
+        if (len(p_text) < pow(m,2)):
+            break
+        d = pow(m,2)
+        n = np.random.randint(0, len(p_text)-d)
+        d = pow(m,2)
+        print(d)
+        plain = np.array(p_text[n:n+d])
+        cipher = np.array(c_text[n:n+d])
+        p = plain.reshape(m,m)
+        print(p)
+        c = cipher.reshape(m,m)
+        p_sympy = sympy.Matrix(p)
+        adj_p = p_sympy.adjugate() % 26
+        print(adj_p)
+        det_p = round(np.linalg.det(p))%26
+        print(np.linalg.det(p))
+        print(round(np.linalg.det(p)))
+        print(det_p)
+        print(math.gcd(det_p,26))
+        if det_p == 0 or math.gcd(det_p,26) != 1:
+            continue
+        inv_det = modInverse(det_p, 26)
+        print(inv_det)
+        inv_p = (inv_det*adj_p)%26
+        print(inv_p)
+        key = (np.matmul(inv_p % 26, c % 26)) % 26
+        print('**********KEY*********')
+        print(key)
+        new_cal = (np.matmul(p % 26, key % 26)) % 26
+        v = new_cal == p
+        if v.all():
+            verification = True
+        else:
+            m += 1
+    return m, key
+
+def modInverse(a, m):
+    """
+    Función que utiliza el algoritmo de Euclides para encontrar el inverso mod m de un número a
+    """
+    m0 = m
+    y = 0
+    x = 1
+    if (m == 1):
+        return 0
+    while (a > 1):
+        # q is quotient
+        q = a // m
+        t = m
+        m = a % m
+        a = t
+        t = y
+        # Update x and y
+        y = x - q * y
+        x = t
+    # Make x positive
+    if (x < 0):
+        x = x + m0
+    return x
+
+p = "GONAVYBEATARMYA"
+c = "OAXELQLSMTKTCOQ"
+texto_cifrado = []
+texto_plano = []
+for i in c:
+    i_cifrado = abc[i.upper()] % 26
+    texto_cifrado.append(i_cifrado)
+
+for i in p:
+    i_plano = abc[i.upper()] % 26
+    texto_plano.append(i_plano)
+
+print(texto_plano)
+print(texto_cifrado)
+
+print(attack(texto_plano, texto_cifrado))
