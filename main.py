@@ -1276,7 +1276,7 @@ def criptanalisisSus(txt):
     alphabet_list = sorted(freq_mono, key=lambda x: freq_mono[x])
     alphabet_list.reverse()
     for row in range(26):
-        item = alphabet_list[row]
+        item = alphabet_list[row].upper()
         cell = QTableWidgetItem(item)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         monofreq_out.setItem(row, 0, cell)
@@ -1301,8 +1301,9 @@ def criptanalisisSus(txt):
     difreq_out.verticalHeader().hide()
     digrams_order = sorted(freq_di, key=lambda x: freq_di[x])
     digrams_order.reverse()
+
     for row in range(len(freq_di)):
-        item = digrams_order[row]
+        item = digrams_order[row].upper()
         cell = QTableWidgetItem(item)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         difreq_out.setItem(row, 0, cell)
@@ -1327,7 +1328,7 @@ def criptanalisisSus(txt):
     trigrams_order = sorted(freq_tri, key=lambda x: freq_tri[x])
     trigrams_order.reverse()
     for row in range(len(freq_tri)):
-        item = trigrams_order[row]
+        item = trigrams_order[row].upper()
         cell = QTableWidgetItem(item)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         trifreq_out.setItem(row, 0, cell)
