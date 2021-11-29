@@ -349,7 +349,7 @@ def escogerCriptosistema():
 
     elif str(menu.currentText()) == "Criptosistema por Desplazamiento":
         # Clave por desplazamiento
-        txt_clave.setText("Ingrese el digito de la clave por Desplazamiento:")
+        txt_clave.setText("Ingrese el dígito de la clave por Desplazamiento:")
         res_clave.setText("")
         for i in [input_aCifrar, input_aDescifrar, output_cifrado, output_descifrado]:
             i.setPlainText("")
@@ -662,6 +662,20 @@ output_descifradoafin = QPlainTextEdit()
 output_descifradoafin.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifradoafin.setReadOnly(True)
 boton_submitafin = QPushButton(text="Submit")
+boton_submitafin.setStyleSheet(
+    """
+    QPushButton {
+        border:1px solid #161616;
+        border-radius:5%;
+        padding:5px;
+        background:#145795;
+        color:white;
+    }
+    QPushButton:hover {
+        background-color:#0B3862;
+        font: bold;
+    }
+    """)
 afinLayout.addWidget(input_label, 0, 1)
 afinLayout.addWidget(decript_label, 0, 2)
 afinLayout.addWidget(input_criptoanalysisafin, 1, 1)
@@ -683,6 +697,20 @@ output_descifradoDesplazamiento = QPlainTextEdit()
 output_descifradoDesplazamiento.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifradoDesplazamiento.setReadOnly(True)
 boton_submitDesplazamiento = QPushButton(text="Submit")
+boton_submitDesplazamiento.setStyleSheet(
+    """
+    QPushButton {
+        border:1px solid #161616;
+        border-radius:5%;
+        padding:5px;
+        background:#145795;
+        color:white;
+    }
+    QPushButton:hover {
+        background-color:#0B3862;
+        font: bold;
+    }
+    """)
 desLayout.addWidget(input_label, 0, 1)
 desLayout.addWidget(decript_label, 0, 2)
 desLayout.addWidget(input_criptoanalysisDesplazamiento, 1, 1)
@@ -721,6 +749,7 @@ boton_getkey.setStyleSheet(
 boton_getkey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_getkey.setFixedWidth(170)
 boton_getkey.clicked.connect(lambda: criptanalisisHill(input_plano, input_cifrado))
+
 boton_limpiar_caHill = QPushButton(text="Limpiar Campos")
 boton_limpiar_caHill.setStyleSheet(
     """
@@ -815,6 +844,20 @@ crifrado_sus.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3
 boton_analizarsus = QPushButton(text="Analizar")
 boton_analizarsus.setFixedWidth(150)
 boton_analizarsus.clicked.connect(lambda: criptanalisisSus(crifrado_sus))
+boton_analizarsus.setStyleSheet(
+    """
+    QPushButton {
+        border:1px solid #161616;
+        border-radius:5%;
+        padding:5px;
+        background:#145795;
+        color:white;
+    }
+    QPushButton:hover {
+        background-color:#0B3862;
+        font: bold;
+    }
+    """)
 decript_label = QLabel()
 decript_label.setText("Texto Plano con \nsustituciones introducidas:")
 output_descifrado_sus = QPlainTextEdit()
@@ -955,6 +998,20 @@ sus_z.addItems(alphabet_list)
 boton_applysus = QPushButton(text="Aplicar")
 boton_applysus.clicked.connect(lambda: aplicar(lista_caracteres, crifrado_sus, output_descifrado_sus))
 boton_applysus.setFixedWidth(100)
+boton_applysus.setStyleSheet(
+    """
+    QPushButton {
+        border:1px solid #161616;
+        border-radius:5%;
+        padding:5px;
+        background:#145795;
+        color:white;
+    }
+    QPushButton:hover {
+        background-color:#0B3862;
+        font: bold;
+    }
+    """)
 
 monfreq_eng = QLabel()
 monfreq_eng.setText('Probabilidad de ocurrencia \nde letras en Inglés')
@@ -1222,6 +1279,20 @@ output_descifradoVigenere = QPlainTextEdit()
 output_descifradoVigenere.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifradoVigenere.setReadOnly(True)
 boton_submitVigenere = QPushButton(text="Submit")
+boton_submitVigenere.setStyleSheet(
+    """
+    QPushButton {
+        border:1px solid #161616;
+        border-radius:5%;
+        padding:5px;
+        background:#145795;
+        color:white;
+    }
+    QPushButton:hover {
+        background-color:#0B3862;
+        font: bold;
+    }
+    """)
 vigenereLayout.addWidget(input_label, 0, 1)
 vigenereLayout.addWidget(decript_label, 0, 2)
 vigenereLayout.addWidget(input_criptoanalysisVigenere, 1, 1)
@@ -1465,16 +1536,16 @@ QMenu::item {
 menuClasicos = QtWidgets.QMenu(menubar)
 menuBloque = QtWidgets.QMenu(menubar)
 menuClaveP = QtWidgets.QMenu(menubar)
-menuSalir = QtWidgets.QMenu(menubar)
+#menuSalir = QtWidgets.QMenu(menubar)
 window.setMenuBar(menubar)
 menuClasicos.setTitle("Criptosistemas CLÁSICOS")
 menuBloque.setTitle("DE BLOQUE")
 menuClaveP.setTitle("CLAVE PÚBLICA")
-menuSalir.setTitle("Salir")
+#menuSalir.setTitle("Salir")
 menubar.addAction(menuClasicos.menuAction())
 menubar.addAction(menuBloque.menuAction())
 menubar.addAction(menuClaveP.menuAction())
-menubar.addAction(menuSalir.menuAction())
+#menubar.addAction(menuSalir.menuAction())
 
 # Menu de criptosistemas
 menu = QComboBox()
