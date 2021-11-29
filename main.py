@@ -279,9 +279,11 @@ def botonVigenere(clave, input, output, encriptar):
         output.setPlainText(vg.encriptar(texto_cifrado, clave))
     else:
         output.setPlainText(vg.decriptar(texto_cifrado, clave))
+
+
 def botonSustitucion(clave, input, output, encriptar):
     clave = ''.join([i for i in clave if i != ' ']).lower().split(',')
-    clave = { i.split(':')[0]: i.split(':')[1] for i in clave}
+    clave = {i.split(':')[0]: i.split(':')[1] for i in clave}
     texto_cifrado = input.toPlainText().strip()
     sus = sb.substitution(texto_cifrado)
     if encriptar:
@@ -290,6 +292,7 @@ def botonSustitucion(clave, input, output, encriptar):
     else:
         sus.invert()
         output.setPlainText(sus.permutado.upper())
+
 
 def crearBoton(cifrado):
     if cifrado:
@@ -382,7 +385,8 @@ def escogerCriptosistema():
         gridcifrado.addWidget(boton_descifrar, 7, 1)
         gridcifrado.addWidget(boton_cifrar, 7, 0)
     elif str(menu.currentText()) == "Criptosistema por Sustitución":
-        txt_clave.setText("Ingrese la regla de sustitución (letra seguido por \":\" y la letra que la sustituye) separado por comas:")
+        txt_clave.setText(
+            "Ingrese la regla de sustitución (letra seguido por \":\" y la letra que la sustituye) separado por comas:")
         limpiarCampos()
         boton_cifrar = crearBoton(cifrado=True)
         boton_descifrar = crearBoton(cifrado=False)
@@ -391,6 +395,7 @@ def escogerCriptosistema():
             lambda: botonSustitucion(res_clave.text(), input_aDescifrar, output_descifrado, False))
         gridcifrado.addWidget(boton_descifrar, 7, 1)
         gridcifrado.addWidget(boton_cifrar, 7, 0)
+
 
 # Crea la ventana
 app = QApplication(sys.argv)
@@ -523,9 +528,11 @@ boton_browsekey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_browsekey.setFixedWidth(150)
 boton_browsekey.clicked.connect(lambda: browse_key())
 
+
 def browse_key():
     fname = QFileDialog.getOpenFileName(None, 'Select key file', QtCore.QDir.rootPath())
     txt_key.setText(fname[0])
+
 
 txt_key = QLabel()
 txt_key.setStyleSheet('''
@@ -536,6 +543,7 @@ boton_key = QPushButton(text="Clave")
 boton_key.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_key.setFixedWidth(150)
 boton_key.clicked.connect(lambda: info())
+
 
 def info():
     QMessageBox.information(None, 'Info',
@@ -557,29 +565,58 @@ gridHill.addWidget(txt_key2, 9, 0)
 gridHill.addWidget(boton_browsekey, 8, 2)
 gridHill.addWidget(txt_key, 9, 2)
 
-#----------Criptoanalisis-----------------
+# ----------Criptoanalisis-----------------
 criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Criptoanálisis Hill",
-                  "Criptoanálisis Permutación", "Criptoanálisis Sustitución",
-                  "Criptoanálisis Vigenere"]
+               "Criptoanálisis Permutación", "Criptoanálisis Sustitución",
+               "Criptoanálisis Vigenere"]
 
-def vigenereAnalisis(input_criptoanalysis,output_descifrado):
+
+def vigenereAnalisis(input_criptoanalysis, output_descifrado):
     texto = input_criptoanalysis.toPlainText().strip()
     res = vg.vigenereAttack(texto)
-    retorno = ''
-    for j,k in res:
-        retorno = retorno + 'La clave podría ser ' + j.upper() + '. De ser ese el caso el texto descifrado es:\n' + k + '\n'
-    output_descifrado.setPlainText(retorno)
-def desplazamientoAnalisis(input_criptoanalysis,output_descifrado):
+    if len(list(res)) == 0:
+        output_descifrado.setPlainText("No se encontró ninguna palabra clave.")
+    else:
+        retorno = ''
+        for j, k in res:
+            retorno = retorno + 'La clave podría ser ' + j.upper() + '. De ser ese el caso el texto descifrado es:\n' + k + '\n'
+        output_descifrado.setPlainText(retorno)
+
+
+def desplazamientoAnalisis(input_criptoanalysis, output_descifrado):
     texto = input_criptoanalysis.toPlainText().strip()
     texto = texto.upper()
     texto = [i for i in texto if i in string.ascii_uppercase]
     output = ""
-    for i in range(1,26):
-        lista = [(abc[k]+i) % 26 for k in texto]
+    for i in range(1, 26):
+        lista = [(abc[k] + i) % 26 for k in texto]
         lista = [string.ascii_uppercase[k] for k in lista]
         output = output + "Con desplazamiento {}: \n".format(i) + ''.join(lista) + "\n"
     output_descifrado.setPlainText(output)
-#------menu---------------
+
+
+
+
+def afinAnalisis(input_criptoanalysis, output_descifrado):
+    texto = input_criptoanalysis.toPlainText().strip().upper()
+    texto = [i for i in texto if i in string.ascii_uppercase]
+    output = ""
+    for i in range(1, 26):
+        if math.gcd(i, 26) > 1:
+            continue
+        inverse_m = [k for k in range(1, 26) if (i * k) % 26 == 1][0]
+        for j in range(1, 26):
+            if math.gcd(i, j) > 1:
+                continue
+            inverse_s = 26 - j
+            if (i, j) == (3, 5):
+                print(inverse_m, inverse_s)
+            output = output + "Para a = {} y b = {} el texto es:\n".format(i, j) + ''.join(
+                [string.ascii_uppercase[(inverse_m * (abc[k] + inverse_s)) % 26] for k in texto]) + '\n'
+    output_descifrado.setPlainText(output)
+
+
+# ------menu---------------
 menu_cripto = QComboBox()
 menu_cripto.setStyleSheet(
     """
@@ -606,56 +643,58 @@ menu_cripto.addItems(criptoitems)
 
 menu_cripto.setCurrentIndex(0)
 tabWidget.setCurrentIndex(0)
-#menu_cripto.setCurrentText("Criptoanálisis Afín")
-#escogerCriptoanalisis()
+# menu_cripto.setCurrentText("Criptoanálisis Afín")
+# escogerCriptoanalisis()
 criptanalysis = QWidget()
 tabWidget.addTab(criptanalysis, "Criptoanálisis")
 gridCripto = QVBoxLayout()
 criptanalysis.setLayout(gridCripto)
 gridCripto.setGeometry(QtCore.QRect(10, 10, 1030, 600))
 stackedLayout = QStackedLayout()
-#Afin**************************
+# Afin**************************
 afin_ca = QWidget()
 afinLayout = QGridLayout()
 input_label = QLabel()
 input_label.setText("Texto Cifrado")
-input_criptoanalysis = QPlainTextEdit()
-input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+input_criptoanalysisafin = QPlainTextEdit()
+input_criptoanalysisafin.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
 decript_label = QLabel()
 decript_label.setText("Llave / Texto Claro")
-output_descifrado = QPlainTextEdit()
-output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
-output_descifrado.setReadOnly(True)
-boton_submit = QPushButton(text="Submit")
-afinLayout.addWidget(input_label,0,1)
-afinLayout.addWidget(decript_label,0,2)
-afinLayout.addWidget(input_criptoanalysis,1,1)
-afinLayout.addWidget(output_descifrado,1,2)
-afinLayout.addWidget(boton_submit,2,1)
+output_descifradoafin = QPlainTextEdit()
+output_descifradoafin.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifradoafin.setReadOnly(True)
+boton_submitafin = QPushButton(text="Submit")
+afinLayout.addWidget(input_label, 0, 1)
+afinLayout.addWidget(decript_label, 0, 2)
+afinLayout.addWidget(input_criptoanalysisafin, 1, 1)
+afinLayout.addWidget(output_descifradoafin, 1, 2)
+afinLayout.addWidget(boton_submitafin, 2, 1)
 afin_ca.setLayout(afinLayout)
 stackedLayout.addWidget(afin_ca)
-#Desplazamiento*********************************
+boton_submitafin.clicked.connect(lambda: afinAnalisis(input_criptoanalysisafin, output_descifradoafin))
+# Desplazamiento*********************************
 des_ca = QWidget()
 desLayout = QGridLayout()
 input_label = QLabel()
 input_label.setText("Texto Cifrado")
-input_criptoanalysis = QPlainTextEdit()
-input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+input_criptoanalysisDesplazamiento = QPlainTextEdit()
+input_criptoanalysisDesplazamiento.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
 decript_label = QLabel()
 decript_label.setText("Llave / Texto Claro")
-output_descifrado = QPlainTextEdit()
-output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
-output_descifrado.setReadOnly(True)
-boton_submit = QPushButton(text="Submit")
-desLayout.addWidget(input_label,0,1)
-desLayout.addWidget(decript_label,0,2)
-desLayout.addWidget(input_criptoanalysis,1,1)
-desLayout.addWidget(output_descifrado,1,2)
-desLayout.addWidget(boton_submit,2,1)
+output_descifradoDesplazamiento = QPlainTextEdit()
+output_descifradoDesplazamiento.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifradoDesplazamiento.setReadOnly(True)
+boton_submitDesplazamiento = QPushButton(text="Submit")
+desLayout.addWidget(input_label, 0, 1)
+desLayout.addWidget(decript_label, 0, 2)
+desLayout.addWidget(input_criptoanalysisDesplazamiento, 1, 1)
+desLayout.addWidget(output_descifradoDesplazamiento, 1, 2)
+desLayout.addWidget(boton_submitDesplazamiento, 2, 1)
 des_ca.setLayout(desLayout)
 stackedLayout.addWidget(des_ca)
-boton_submit.clicked.connect(lambda: desplazamientoAnalisis(input_criptoanalysis, output_descifrado))
-#Hill**************************
+boton_submitDesplazamiento.clicked.connect(
+    lambda: desplazamientoAnalisis(input_criptoanalysisDesplazamiento, output_descifradoDesplazamiento))
+# Hill**************************
 hill_ca = QWidget()
 hillLayout = QGridLayout()
 txt_plano = QLabel()
@@ -701,10 +740,14 @@ QPushButton:hover {
 """)
 boton_limpiar_caHill.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 boton_limpiar_caHill.setFixedWidth(170)
+
+
 def limpiarCampos_caHill():
     res_clave.setText("")
     for i in [input_plano, input_cifrado, output_m, output_keyfound]:
         i.setPlainText("")
+
+
 boton_limpiar_caHill.clicked.connect(limpiarCampos_caHill)
 txt_m = QLabel()
 txt_m.setText("Valor de m: ")
@@ -728,26 +771,35 @@ hillLayout.addWidget(txt_keyfound, 2, 2)
 hillLayout.addWidget(output_keyfound, 3, 2)
 hill_ca.setLayout(hillLayout)
 stackedLayout.addWidget(hill_ca)
+# Add the combo box and the stacked layout to the top-level layout
+gridCripto.addWidget(menu_cripto)
+gridCripto.addLayout(stackedLayout)
 
 
-#Permutación*********************************
+def switchPage():
+    stackedLayout.setCurrentIndex(menu_cripto.currentIndex())
+
+
+menu_cripto.currentTextChanged.connect(switchPage)
+
+# Permutación*********************************
 permutacion_ca = QWidget()
 permutacionLayout = QGridLayout()
 input_label = QLabel()
 input_label.setText("Texto Cifrado")
-input_criptoanalysis = QPlainTextEdit()
-input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+input_criptoanalysisPermutacion = QPlainTextEdit()
+input_criptoanalysisPermutacion.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
 decript_label = QLabel()
 decript_label.setText("Llave / Texto Claro")
-output_descifrado = QPlainTextEdit()
-output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
-output_descifrado.setReadOnly(True)
+output_descifradoPermutacion = QPlainTextEdit()
+output_descifradoPermutacion.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifradoPermutacion.setReadOnly(True)
 boton_submit = QPushButton(text="Submit")
-permutacionLayout.addWidget(input_label,0,1)
-permutacionLayout.addWidget(decript_label,0,2)
-permutacionLayout.addWidget(input_criptoanalysis,1,1)
-permutacionLayout.addWidget(output_descifrado,1,2)
-permutacionLayout.addWidget(boton_submit,2,1)
+permutacionLayout.addWidget(input_label, 0, 1)
+permutacionLayout.addWidget(decript_label, 0, 2)
+permutacionLayout.addWidget(input_criptoanalysisPermutacion, 1, 1)
+permutacionLayout.addWidget(output_descifradoPermutacion, 1, 2)
+permutacionLayout.addWidget(boton_submit, 2, 1)
 permutacion_ca.setLayout(permutacionLayout)
 stackedLayout.addWidget(permutacion_ca)
 
@@ -1162,31 +1214,25 @@ vigenere_ca = QWidget()
 vigenereLayout = QGridLayout()
 input_label = QLabel()
 input_label.setText("Texto Cifrado")
-input_criptoanalysis = QPlainTextEdit()
-input_criptoanalysis.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
+input_criptoanalysisVigenere = QPlainTextEdit()
+input_criptoanalysisVigenere.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
 decript_label = QLabel()
 decript_label.setText("Llave / Texto Claro")
-output_descifrado = QPlainTextEdit()
-output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
-output_descifrado.setReadOnly(True)
+output_descifradoVigenere = QPlainTextEdit()
+output_descifradoVigenere.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifradoVigenere.setReadOnly(True)
 boton_submit = QPushButton(text="Submit")
-vigenereLayout.addWidget(input_label,0,1)
-vigenereLayout.addWidget(decript_label,0,2)
-vigenereLayout.addWidget(input_criptoanalysis,1,1)
-vigenereLayout.addWidget(output_descifrado,1,2)
-vigenereLayout.addWidget(boton_submit,2,1)
+vigenereLayout.addWidget(input_label, 0, 1)
+vigenereLayout.addWidget(decript_label, 0, 2)
+vigenereLayout.addWidget(input_criptoanalysisVigenere, 1, 1)
+vigenereLayout.addWidget(output_descifradoVigenere, 1, 2)
+vigenereLayout.addWidget(boton_submit, 2, 1)
 vigenere_ca.setLayout(vigenereLayout)
 stackedLayout.addWidget(vigenere_ca)
-boton_submit.clicked.connect(lambda: vigenereAnalisis(input_criptoanalysis,output_descifrado))
+boton_submit.clicked.connect(lambda: vigenereAnalisis(input_criptoanalysisVigenere, output_descifradoVigenere))
 
-# Add the combo box and the stacked layout to the top-level layout
-gridCripto.addWidget(menu_cripto)
-gridCripto.addLayout(stackedLayout)
-def switchPage():
-    stackedLayout.setCurrentIndex(menu_cripto.currentIndex())
-menu_cripto.currentTextChanged.connect(switchPage)
 
-#--------------------------funciones criptoanalisis--------------------------
+# --------------------------funciones criptoanalisis--------------------------
 def criptanalisisHill(txt_plano, txt_cifrado):
     p = txt_plano.toPlainText().strip().upper()
     c = txt_cifrado.toPlainText().strip().upper()
@@ -1359,7 +1405,7 @@ def escogerCriptoanalisis():
         gridCripto.addWidget(Matrix,3,2)
 """
 
-#MenuBar
+# MenuBar
 menubar = QtWidgets.QMenuBar(window)
 menubar.setGeometry(QtCore.QRect(0, 0, 500, 200))
 menubar.setStyleSheet("""
