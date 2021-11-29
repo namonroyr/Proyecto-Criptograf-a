@@ -53,3 +53,12 @@ class substitution:
 
     def invert(self):
         self.permutar({v: k for k,v in self.key.items()})
+
+    def mono(self):
+        return self.freq_mono
+
+    def digrams(self):
+        return self.freq_di
+
+    def trigrams(self):
+        return self.freq_tri
