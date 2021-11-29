@@ -595,10 +595,6 @@ def desplazamientoAnalisis(input_criptoanalysis, output_descifrado):
     output_descifrado.setPlainText(output)
 
 
-def inverse(x):
-    for i in range(1, 26):
-        if (i * x) % 26 == 1:
-            return i
 
 
 def afinAnalisis(input_criptoanalysis, output_descifrado):
