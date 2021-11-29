@@ -20,7 +20,7 @@ class substitution:
         self.text = text
         self.work_text = "".join([i for i in text.lower() if i in string.ascii_lowercase])
         self.permutado = self.work_text
-        self.freq_mono = {u: self.work_text.count(u) for u in set(self.work_text)}
+        self.freq_mono = {u: self.work_text.count(u) for u in string.ascii_lowercase}
         self.freq_di = {u: self._digrams.count(u) for u in set(self._digrams)}
         self.freq_tri = {u: self._trigrams.count(u) for u in set(self._trigrams)}
         self.key = {u: u for u in string.ascii_lowercase}

@@ -816,9 +816,9 @@ boton_analizarsus.setFixedWidth(150)
 boton_analizarsus.clicked.connect(lambda: criptanalisisSus(crifrado_sus))
 decript_label = QLabel()
 decript_label.setText("Texto Plano con \nsustituciones introducidas:")
-output_descifrado = QPlainTextEdit()
-output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
-output_descifrado.setReadOnly(True)
+output_descifrado_sus = QPlainTextEdit()
+output_descifrado_sus.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
+output_descifrado_sus.setReadOnly(True)
 # letters
 a_label = QLabel()
 a_label.setText("A")
@@ -952,6 +952,7 @@ sus_y.addItems(alphabet_list)
 sus_z = QComboBox()
 sus_z.addItems(alphabet_list)
 boton_applysus = QPushButton(text="Aplicar")
+boton_applysus.clicked.connect(lambda: aplicar(lista_caracteres, crifrado_sus, output_descifrado_sus))
 boton_applysus.setFixedWidth(100)
 
 monfreq_eng = QLabel()
@@ -1095,7 +1096,7 @@ sus1_ly.addWidget(crifrado_sus_label)
 sus1_ly.addWidget(crifrado_sus)
 sus1_ly.addWidget(boton_analizarsus)
 sus1_ly.addWidget(decript_label)
-sus1_ly.addWidget(output_descifrado)
+sus1_ly.addWidget(output_descifrado_sus)
 
 sus2_ly = QGridLayout()
 sus2_ly.addWidget(monfreq_eng, 0, 0)
@@ -1257,7 +1258,6 @@ def criptanalisisHill(txt_plano, txt_cifrado):
 
 def criptanalisisSus(txt):
     alphabet_lower = string.ascii_lowercase
-    alphabet_list_low = list(alphabet_lower)
 
     txt_cifrado = txt.toPlainText().strip()
     cipher = sb.substitution(txt_cifrado)
@@ -1266,29 +1266,24 @@ def criptanalisisSus(txt):
     freq_tri = cipher.trigrams()
     # *-*-*-*-*-*-
     monofreq_out.setFont(font)
-    monofreq_out.setColumnCount(4)
-    monofreq_out.setRowCount(13)
+    monofreq_out.setColumnCount(2)
+    monofreq_out.setRowCount(26)
     monofreq_out.resizeRowsToContents()
-    monofreq_out.setHorizontalHeaderLabels(["Letra", "Freq.", "Letra", "Freq."])
+    monofreq_out.setHorizontalHeaderLabels(["Letra", "Freq."])
     monofreq_out.resizeRowsToContents()
     monofreq_out.resizeColumnsToContents()
     monofreq_out.verticalHeader().hide()
-
-    for row in range(13):
+    alphabet_list = sorted(freq_mono, key=lambda x: freq_mono[x])
+    alphabet_list.reverse()
+    for row in range(26):
         item = alphabet_list[row]
         cell = QTableWidgetItem(item)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         monofreq_out.setItem(row, 0, cell)
 
-    for row in range(13):
-        item = alphabet_list[row + 13]
-        cell = QTableWidgetItem(item)
-        cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-        monofreq_out.setItem(row, 2, cell)
-
-    for row in range(13):
+    for row in range(26):
         try:
-            item = str(freq_mono[alphabet_list_low[row]])
+            item = str(freq_mono[alphabet_list[row]])
         except:
             item = str(0)
         cell = QTableWidgetItem(item)
@@ -1296,15 +1291,6 @@ def criptanalisisSus(txt):
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         monofreq_out.setItem(row, 1, cell)
 
-    for row in range(13):
-        try:
-            item = str(freq_mono[alphabet_list[row + 13].lower()])
-        except:
-            item = str(0)
-        cell = QTableWidgetItem(item)
-        cell.setTextAlignment(Qt.AlignRight)
-        cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-        monofreq_out.setItem(row, 3, cell)
     difreq_out.setFont(font)
     difreq_out.setColumnCount(2)
     difreq_out.setRowCount(len(freq_di))
@@ -1354,6 +1340,17 @@ def criptanalisisSus(txt):
         cell.setTextAlignment(Qt.AlignRight)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         trifreq_out.setItem(row, 1, cell)
+
+
+def aplicar(lista_caracteres, txt_in, txt_out):
+    llave = {string.ascii_lowercase[i]: str(lista_caracteres[i].currentText()).lower() for i in range(26)}
+    if len(set(j for i,j in llave.items())) < 26:
+        txt_out.setPlainText("Esta sustitución no es válida. La función de esta sustitución no es inyectiva. Por favor inténtelo de nuevo")
+        return
+    cypher = sb.substitution(txt_in.toPlainText().strip())
+    cypher.permutar(llave)
+    txt_out.setPlainText(str(cypher.permutado))
+    criptanalisisSus(txt_out)
 
 
 """
