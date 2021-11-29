@@ -595,25 +595,30 @@ def desplazamientoAnalisis(input_criptoanalysis, output_descifrado):
     output_descifrado.setPlainText(output)
 
 
+def inverse(x):
+    for i in range(1, 26):
+        if (i * x) % 26 == 1:
+            return i
+
+
 def afinAnalisis(input_criptoanalysis, output_descifrado):
     texto = input_criptoanalysis.toPlainText().strip().upper()
     texto = [i for i in texto if i in string.ascii_uppercase]
     output = ""
     for i in range(1, 26):
-        inverse_m = 1
         if math.gcd(i, 26) > 1:
             continue
-        for k in range(1, i):
-            if (k * i) % 26 == 1:
-                inverse_m = k
-                break
+        inverse_m = [k for k in range(1, 26) if (i * k) % 26 == 1][0]
         for j in range(1, 26):
             if math.gcd(i, j) > 1:
                 continue
             inverse_s = 26 - j
+            if (i, j) == (3, 5):
+                print(inverse_m, inverse_s)
             output = output + "Para a = {} y b = {} el texto es:\n".format(i, j) + ''.join(
                 [string.ascii_uppercase[(inverse_m * (abc[k] + inverse_s)) % 26] for k in texto]) + '\n'
     output_descifrado.setPlainText(output)
+
 
 # ------menu---------------
 menu_cripto = QComboBox()
@@ -691,7 +696,8 @@ desLayout.addWidget(output_descifradoDesplazamiento, 1, 2)
 desLayout.addWidget(boton_submitDesplazamiento, 2, 1)
 des_ca.setLayout(desLayout)
 stackedLayout.addWidget(des_ca)
-boton_submitDesplazamiento.clicked.connect(lambda: desplazamientoAnalisis(input_criptoanalysisDesplazamiento, output_descifradoDesplazamiento))
+boton_submitDesplazamiento.clicked.connect(
+    lambda: desplazamientoAnalisis(input_criptoanalysisDesplazamiento, output_descifradoDesplazamiento))
 # Hill**************************
 hill_ca = QWidget()
 hillLayout = QGridLayout()
