@@ -595,8 +595,6 @@ def desplazamientoAnalisis(input_criptoanalysis, output_descifrado):
     output_descifrado.setPlainText(output)
 
 
-
-
 def afinAnalisis(input_criptoanalysis, output_descifrado):
     texto = input_criptoanalysis.toPlainText().strip().upper()
     texto = [i for i in texto if i in string.ascii_uppercase]
@@ -803,7 +801,7 @@ permutacionLayout.addWidget(boton_submit, 2, 1)
 permutacion_ca.setLayout(permutacionLayout)
 stackedLayout.addWidget(permutacion_ca)
 
-#Sustitución*********************************
+# Sustitución*********************************
 alphabet_string = string.ascii_uppercase
 alphabet_list = list(alphabet_string)
 
@@ -821,7 +819,7 @@ decript_label.setText("Texto Plano con \nsustituciones introducidas:")
 output_descifrado = QPlainTextEdit()
 output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifrado.setReadOnly(True)
-#letters
+# letters
 a_label = QLabel()
 a_label.setText("A")
 b_label = QLabel()
@@ -979,7 +977,7 @@ for row in range(13):
     monoeng_table.setItem(row, 0, cell)
 
 for row in range(13):
-    item = alphabet_list[row+13]
+    item = alphabet_list[row + 13]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     monoeng_table.setItem(row, 2, cell)
@@ -996,15 +994,15 @@ for row in range(13):
     monoeng_table.setItem(row, 1, cell)
 
 for row in range(13):
-    item = str(letters_prob[row+13])
+    item = str(letters_prob[row + 13])
     cell = QTableWidgetItem(item)
     cell.setTextAlignment(Qt.AlignRight)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     monoeng_table.setItem(row, 3, cell)
 
 digrams = ['TH', 'HE', 'IN', 'ER', 'AN', 'RE', 'ED', 'ON', 'ES', 'ST',
-'EN', 'AT', 'TO', 'NT', 'HA', 'ND', 'OU', 'EA', 'NG', 'AS',
-'OR', 'TI', 'IS', 'ET', 'IT', 'AR', 'TE', 'SE', 'HI', 'OF']
+           'EN', 'AT', 'TO', 'NT', 'HA', 'ND', 'OU', 'EA', 'NG', 'AS',
+           'OR', 'TI', 'IS', 'ET', 'IT', 'AR', 'TE', 'SE', 'HI', 'OF']
 
 difreq_eng = QLabel()
 difreq_eng.setText('Digramas más frecuentes \nen Inglés')
@@ -1023,22 +1021,22 @@ for row in range(6):
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     digeng_table.setItem(row, 0, cell)
 for row in range(6):
-    item = digrams[row+6]
+    item = digrams[row + 6]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     digeng_table.setItem(row, 1, cell)
 for row in range(6):
-    item = digrams[row+12]
+    item = digrams[row + 12]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     digeng_table.setItem(row, 2, cell)
 for row in range(6):
-    item = digrams[row+18]
+    item = digrams[row + 18]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     digeng_table.setItem(row, 3, cell)
 for row in range(6):
-    item = digrams[row+24]
+    item = digrams[row + 24]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     digeng_table.setItem(row, 4, cell)
@@ -1062,22 +1060,22 @@ for row in range(2):
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     trigeng_table.setItem(row, 0, cell)
 for row in range(2):
-    item = trigrams[row+2]
+    item = trigrams[row + 2]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     trigeng_table.setItem(row, 1, cell)
 for row in range(2):
-    item = trigrams[row+4]
+    item = trigrams[row + 4]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     trigeng_table.setItem(row, 2, cell)
 for row in range(2):
-    item = trigrams[row+6]
+    item = trigrams[row + 6]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     trigeng_table.setItem(row, 3, cell)
 for row in range(2):
-    item = trigrams[row+8]
+    item = trigrams[row + 8]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
     trigeng_table.setItem(row, 4, cell)
@@ -1092,7 +1090,6 @@ trifreq_txt = QLabel()
 trifreq_txt.setText('Frecuencia de Trigramas en el \ntexto')
 trifreq_out = QTableWidget()
 
-
 sus1_ly = QVBoxLayout()
 sus1_ly.addWidget(crifrado_sus_label)
 sus1_ly.addWidget(crifrado_sus)
@@ -1100,20 +1097,19 @@ sus1_ly.addWidget(boton_analizarsus)
 sus1_ly.addWidget(decript_label)
 sus1_ly.addWidget(output_descifrado)
 
-
 sus2_ly = QGridLayout()
-sus2_ly.addWidget(monfreq_eng,0,0)
-sus2_ly.addWidget(monoeng_table,1,0)
-sus2_ly.addWidget(difreq_eng,2,0)
-sus2_ly.addWidget(digeng_table,3,0)
-sus2_ly.addWidget(trifreq_eng,4,0)
-sus2_ly.addWidget(trigeng_table,5,0)
-sus2_ly.addWidget(monfreq_txt,0,1)
-sus2_ly.addWidget(monofreq_out,1,1)
-sus2_ly.addWidget(difreq_txt,2,1)
-sus2_ly.addWidget(difreq_out,3,1)
-sus2_ly.addWidget(trifreq_txt,4,1)
-sus2_ly.addWidget(trifreq_out,5,1)
+sus2_ly.addWidget(monfreq_eng, 0, 0)
+sus2_ly.addWidget(monoeng_table, 1, 0)
+sus2_ly.addWidget(difreq_eng, 2, 0)
+sus2_ly.addWidget(digeng_table, 3, 0)
+sus2_ly.addWidget(trifreq_eng, 4, 0)
+sus2_ly.addWidget(trigeng_table, 5, 0)
+sus2_ly.addWidget(monfreq_txt, 0, 1)
+sus2_ly.addWidget(monofreq_out, 1, 1)
+sus2_ly.addWidget(difreq_txt, 2, 1)
+sus2_ly.addWidget(difreq_out, 3, 1)
+sus2_ly.addWidget(trifreq_txt, 4, 1)
+sus2_ly.addWidget(trifreq_out, 5, 1)
 
 d_k = QLabel()
 d_k.setText('d(y)')
@@ -1136,69 +1132,69 @@ y2.setAlignment(QtCore.Qt.AlignCenter)
 
 sustitucionLayout = QGridLayout()
 
-sustitucionLayout.addWidget(d_k,1,0)
-sustitucionLayout.addWidget(a_label,2,0)
-sustitucionLayout.addWidget(b_label,3,0)
-sustitucionLayout.addWidget(c_label,4,0)
-sustitucionLayout.addWidget(d_label,5,0)
-sustitucionLayout.addWidget(e_label,6,0)
-sustitucionLayout.addWidget(f_label,7,0)
-sustitucionLayout.addWidget(g_label,8,0)
-sustitucionLayout.addWidget(h_label,9,0)
-sustitucionLayout.addWidget(i_label,10,0)
-sustitucionLayout.addWidget(y,1,1)
-sustitucionLayout.addWidget(sus_a,2,1)
-sustitucionLayout.addWidget(sus_b,3,1)
-sustitucionLayout.addWidget(sus_c,4,1)
-sustitucionLayout.addWidget(sus_d,5,1)
-sustitucionLayout.addWidget(sus_e,6,1)
-sustitucionLayout.addWidget(sus_f,7,1)
-sustitucionLayout.addWidget(sus_g,8,1)
-sustitucionLayout.addWidget(sus_h,9,1)
-sustitucionLayout.addWidget(sus_i,10,1)
-sustitucionLayout.addWidget(d_k1,1,2)
-sustitucionLayout.addWidget(j_label,2,2)
-sustitucionLayout.addWidget(k_label,3,2)
-sustitucionLayout.addWidget(l_label,4,2)
-sustitucionLayout.addWidget(m_label,5,2)
-sustitucionLayout.addWidget(n_label,6,2)
-sustitucionLayout.addWidget(o_label,7,2)
-sustitucionLayout.addWidget(p_label,8,2)
-sustitucionLayout.addWidget(q_label,9,2)
-sustitucionLayout.addWidget(r_label,10,2)
-sustitucionLayout.addWidget(y1,1,3)
-sustitucionLayout.addWidget(sus_j,2,3)
-sustitucionLayout.addWidget(sus_k,3,3)
-sustitucionLayout.addWidget(sus_l,4,3)
-sustitucionLayout.addWidget(sus_m,5,3)
-sustitucionLayout.addWidget(sus_n,6,3)
-sustitucionLayout.addWidget(sus_o,7,3)
-sustitucionLayout.addWidget(sus_p,8,3)
-sustitucionLayout.addWidget(sus_q,9,3)
-sustitucionLayout.addWidget(sus_r,10,3)
-sustitucionLayout.addWidget(d_k2,1,4)
-sustitucionLayout.addWidget(s_label,2,4)
-sustitucionLayout.addWidget(t_label,3,4)
-sustitucionLayout.addWidget(u_label,4,4)
-sustitucionLayout.addWidget(v_label,5,4)
-sustitucionLayout.addWidget(w_label,6,4)
-sustitucionLayout.addWidget(x_label,7,4)
-sustitucionLayout.addWidget(y_label,8,4)
-sustitucionLayout.addWidget(z_label,9,4)
+sustitucionLayout.addWidget(d_k, 1, 0)
+sustitucionLayout.addWidget(a_label, 2, 0)
+sustitucionLayout.addWidget(b_label, 3, 0)
+sustitucionLayout.addWidget(c_label, 4, 0)
+sustitucionLayout.addWidget(d_label, 5, 0)
+sustitucionLayout.addWidget(e_label, 6, 0)
+sustitucionLayout.addWidget(f_label, 7, 0)
+sustitucionLayout.addWidget(g_label, 8, 0)
+sustitucionLayout.addWidget(h_label, 9, 0)
+sustitucionLayout.addWidget(i_label, 10, 0)
+sustitucionLayout.addWidget(y, 1, 1)
+sustitucionLayout.addWidget(sus_a, 2, 1)
+sustitucionLayout.addWidget(sus_b, 3, 1)
+sustitucionLayout.addWidget(sus_c, 4, 1)
+sustitucionLayout.addWidget(sus_d, 5, 1)
+sustitucionLayout.addWidget(sus_e, 6, 1)
+sustitucionLayout.addWidget(sus_f, 7, 1)
+sustitucionLayout.addWidget(sus_g, 8, 1)
+sustitucionLayout.addWidget(sus_h, 9, 1)
+sustitucionLayout.addWidget(sus_i, 10, 1)
+sustitucionLayout.addWidget(d_k1, 1, 2)
+sustitucionLayout.addWidget(j_label, 2, 2)
+sustitucionLayout.addWidget(k_label, 3, 2)
+sustitucionLayout.addWidget(l_label, 4, 2)
+sustitucionLayout.addWidget(m_label, 5, 2)
+sustitucionLayout.addWidget(n_label, 6, 2)
+sustitucionLayout.addWidget(o_label, 7, 2)
+sustitucionLayout.addWidget(p_label, 8, 2)
+sustitucionLayout.addWidget(q_label, 9, 2)
+sustitucionLayout.addWidget(r_label, 10, 2)
+sustitucionLayout.addWidget(y1, 1, 3)
+sustitucionLayout.addWidget(sus_j, 2, 3)
+sustitucionLayout.addWidget(sus_k, 3, 3)
+sustitucionLayout.addWidget(sus_l, 4, 3)
+sustitucionLayout.addWidget(sus_m, 5, 3)
+sustitucionLayout.addWidget(sus_n, 6, 3)
+sustitucionLayout.addWidget(sus_o, 7, 3)
+sustitucionLayout.addWidget(sus_p, 8, 3)
+sustitucionLayout.addWidget(sus_q, 9, 3)
+sustitucionLayout.addWidget(sus_r, 10, 3)
+sustitucionLayout.addWidget(d_k2, 1, 4)
+sustitucionLayout.addWidget(s_label, 2, 4)
+sustitucionLayout.addWidget(t_label, 3, 4)
+sustitucionLayout.addWidget(u_label, 4, 4)
+sustitucionLayout.addWidget(v_label, 5, 4)
+sustitucionLayout.addWidget(w_label, 6, 4)
+sustitucionLayout.addWidget(x_label, 7, 4)
+sustitucionLayout.addWidget(y_label, 8, 4)
+sustitucionLayout.addWidget(z_label, 9, 4)
 
-sustitucionLayout.addWidget(y2,1,5)
-sustitucionLayout.addWidget(sus_s,2,5)
-sustitucionLayout.addWidget(sus_t,3,5)
-sustitucionLayout.addWidget(sus_u,4,5)
-sustitucionLayout.addWidget(sus_v,5,5)
-sustitucionLayout.addWidget(sus_w,6,5)
-sustitucionLayout.addWidget(sus_x,7,5)
-sustitucionLayout.addWidget(sus_y,8,5)
-sustitucionLayout.addWidget(sus_z,9,5)
+sustitucionLayout.addWidget(y2, 1, 5)
+sustitucionLayout.addWidget(sus_s, 2, 5)
+sustitucionLayout.addWidget(sus_t, 3, 5)
+sustitucionLayout.addWidget(sus_u, 4, 5)
+sustitucionLayout.addWidget(sus_v, 5, 5)
+sustitucionLayout.addWidget(sus_w, 6, 5)
+sustitucionLayout.addWidget(sus_x, 7, 5)
+sustitucionLayout.addWidget(sus_y, 8, 5)
+sustitucionLayout.addWidget(sus_z, 9, 5)
 nn_l = QLabel()
 nn_l.setText('')
-sustitucionLayout.addWidget(nn_l,0,6)
-sustitucionLayout.addWidget(boton_applysus,11,2,1,2)
+sustitucionLayout.addWidget(nn_l, 0, 6)
+sustitucionLayout.addWidget(boton_applysus, 11, 2, 1, 2)
 
 sus_layout.addLayout(sus1_ly)
 sus_layout.addLayout(sustitucionLayout)
@@ -1207,9 +1203,11 @@ sus_layout.addStretch(1)
 
 sustitucion_ca.setLayout(sus_layout)
 stackedLayout.addWidget(sustitucion_ca)
+lista_caracteres = [sus_a, sus_b, sus_c, sus_d, sus_e, sus_f, sus_g, sus_h, sus_i,
+                    sus_j, sus_k, sus_l, sus_m, sus_n, sus_o, sus_p, sus_q, sus_r,
+                    sus_s, sus_t, sus_u, sus_v, sus_w, sus_x, sus_y, sus_z]
 
-
-#Vigenere*********************************
+# Vigenere*********************************
 vigenere_ca = QWidget()
 vigenereLayout = QGridLayout()
 input_label = QLabel()
@@ -1256,6 +1254,7 @@ def criptanalisisHill(txt_plano, txt_cifrado):
         error_dialog = QtWidgets.QErrorMessage()
         error_dialog.showMessage('Los textos ingresados deben tener la misma longitud de caracteres')
 
+
 def criptanalisisSus(txt):
     alphabet_lower = string.ascii_lowercase
     alphabet_list_low = list(alphabet_lower)
@@ -1265,7 +1264,7 @@ def criptanalisisSus(txt):
     freq_mono = cipher.mono()
     freq_di = cipher.digrams()
     freq_tri = cipher.trigrams()
-    #*-*-*-*-*-*-
+    # *-*-*-*-*-*-
     monofreq_out.setFont(font)
     monofreq_out.setColumnCount(4)
     monofreq_out.setRowCount(13)
@@ -1282,7 +1281,7 @@ def criptanalisisSus(txt):
         monofreq_out.setItem(row, 0, cell)
 
     for row in range(13):
-        item = alphabet_list[row+13]
+        item = alphabet_list[row + 13]
         cell = QTableWidgetItem(item)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         monofreq_out.setItem(row, 2, cell)
@@ -1299,17 +1298,63 @@ def criptanalisisSus(txt):
 
     for row in range(13):
         try:
-            item = str(freq_mono[alphabet_list[row+13].lower()])
+            item = str(freq_mono[alphabet_list[row + 13].lower()])
         except:
             item = str(0)
         cell = QTableWidgetItem(item)
         cell.setTextAlignment(Qt.AlignRight)
         cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         monofreq_out.setItem(row, 3, cell)
+    difreq_out.setFont(font)
+    difreq_out.setColumnCount(2)
+    difreq_out.setRowCount(len(freq_di))
+    difreq_out.resizeRowsToContents()
+    difreq_out.setHorizontalHeaderLabels(["Digrama", "Freq."])
+    difreq_out.resizeRowsToContents()
+    difreq_out.resizeColumnsToContents()
+    difreq_out.verticalHeader().hide()
+    digrams_order = sorted(freq_di, key=lambda x: freq_di[x])
+    digrams_order.reverse()
+    for row in range(len(freq_di)):
+        item = digrams_order[row]
+        cell = QTableWidgetItem(item)
+        cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        difreq_out.setItem(row, 0, cell)
+    for row in range(len(freq_di)):
+        try:
+            item = str(freq_di[digrams_order[row]])
+        except:
+            item = ""
+        cell = QTableWidgetItem(item)
+        cell.setTextAlignment(Qt.AlignRight)
+        cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        difreq_out.setItem(row, 1, cell)
 
+    trifreq_out.setFont(font)
+    trifreq_out.setColumnCount(2)
+    trifreq_out.setRowCount(len(freq_tri))
+    trifreq_out.resizeRowsToContents()
+    trifreq_out.setHorizontalHeaderLabels(["Trigrama", "Freq."])
+    trifreq_out.resizeRowsToContents()
+    trifreq_out.resizeColumnsToContents()
+    trifreq_out.verticalHeader().hide()
+    trigrams_order = sorted(freq_tri, key=lambda x: freq_tri[x])
+    trigrams_order.reverse()
+    for row in range(len(freq_tri)):
+        item = trigrams_order[row]
+        cell = QTableWidgetItem(item)
+        cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        trifreq_out.setItem(row, 0, cell)
+    for row in range(len(freq_tri)):
+        try:
+            item = str(freq_tri[trigrams_order[row]])
+        except:
+            item = ""
+        cell = QTableWidgetItem(item)
+        cell.setTextAlignment(Qt.AlignRight)
+        cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        trifreq_out.setItem(row, 1, cell)
 
-    #print(freq_di)
-    #print(freq_tri)
 
 """
 #------funcion menu-------
