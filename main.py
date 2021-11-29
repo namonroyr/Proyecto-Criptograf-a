@@ -572,8 +572,9 @@ criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Cript
 
 def vigenereAnalisis(input_criptoanalysis, output_descifrado):
     texto = input_criptoanalysis.toPlainText().strip()
-    res = vg.vigenereAttack(texto)
-    if len(list(res)) == 0:
+    res = list(vg.vigenereAttack(texto))
+    if len(res) == 0:
+        print("entra1")
         output_descifrado.setPlainText("No se encontró ninguna palabra clave.")
     else:
         retorno = ''
@@ -1220,17 +1221,15 @@ decript_label.setText("Llave / Texto Claro")
 output_descifradoVigenere = QPlainTextEdit()
 output_descifradoVigenere.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
 output_descifradoVigenere.setReadOnly(True)
-boton_submit = QPushButton(text="Submit")
+boton_submitVigenere = QPushButton(text="Submit")
 vigenereLayout.addWidget(input_label, 0, 1)
 vigenereLayout.addWidget(decript_label, 0, 2)
 vigenereLayout.addWidget(input_criptoanalysisVigenere, 1, 1)
 vigenereLayout.addWidget(output_descifradoVigenere, 1, 2)
-vigenereLayout.addWidget(boton_submit, 2, 1)
+vigenereLayout.addWidget(boton_submitVigenere, 2, 1)
 vigenere_ca.setLayout(vigenereLayout)
 stackedLayout.addWidget(vigenere_ca)
-boton_submit.clicked.connect(lambda: vigenereAnalisis(input_criptoanalysisVigenere, output_descifradoVigenere))
-
-
+boton_submitVigenere.clicked.connect(lambda: vigenereAnalisis(input_criptoanalysisVigenere, output_descifradoVigenere))
 # --------------------------funciones criptoanalisis--------------------------
 def criptanalisisHill(txt_plano, txt_cifrado):
     p = txt_plano.toPlainText().strip().upper()
