@@ -566,8 +566,7 @@ gridHill.addWidget(boton_browsekey, 8, 2)
 gridHill.addWidget(txt_key, 9, 2)
 
 # ----------Criptoanalisis-----------------
-criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Criptoanálisis Hill",
-               "Criptoanálisis Permutación", "Criptoanálisis Sustitución",
+criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Criptoanálisis Hill / Permutación", "Criptoanálisis Sustitución",
                "Criptoanálisis Vigenere"]
 
 
@@ -781,6 +780,7 @@ def switchPage():
 menu_cripto.currentTextChanged.connect(switchPage)
 
 # Permutación*********************************
+'''
 permutacion_ca = QWidget()
 permutacionLayout = QGridLayout()
 input_label = QLabel()
@@ -800,7 +800,7 @@ permutacionLayout.addWidget(output_descifradoPermutacion, 1, 2)
 permutacionLayout.addWidget(boton_submit, 2, 1)
 permutacion_ca.setLayout(permutacionLayout)
 stackedLayout.addWidget(permutacion_ca)
-
+'''
 # Sustitución*********************************
 alphabet_string = string.ascii_uppercase
 alphabet_list = list(alphabet_string)
