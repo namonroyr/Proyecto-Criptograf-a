@@ -313,6 +313,7 @@ def botonSustitucion(clave, input, output, encriptar):
         print(sus.key)
         output.setPlainText(sus.permutado.upper())
     else:
+        print({v: k for k, v in clave.items()})
         sus.permutar({v: k for k, v in clave.items()})
         output.setPlainText(sus.permutado.upper())
 
