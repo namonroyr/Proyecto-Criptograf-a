@@ -2,7 +2,7 @@ import math as mth
 import functools as ft
 import string
 from typing import List, Union, Any
-freqs: list[Union[float, Any]] = [.082, .015, .028, .043, .127, .022, .020, .061, .070, .002, .008, .040, .024, .067, .075, .019, .001, .060,
+freqs = [.082, .015, .028, .043, .127, .022, .020, .061, .070, .002, .008, .040, .024, .067, .075, .019, .001, .060,
              .063, .091, .028, .010, .023, .001, .020, .001]
 
 class substitution:
