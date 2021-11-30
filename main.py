@@ -1,8 +1,9 @@
 import sys
 import math
+import cv2
 import numpy as np
 import string
-import imageio
+#import imageio
 import vigenere as vg
 import substitution as sb
 import string
@@ -246,9 +247,10 @@ def botonHill(input, encriptar):
     img_extension = image_file_name.split('.')[1]
     file_ext = ['jpg', 'png', 'jpeg']
     if image_file_name != "" and img_extension in file_ext:
-        img = imageio.imread(image_file_name)
+        img = cv2.imread(image_file_name)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if encriptar == True:
-            criptosistema_Hill = hill.Hill(img, img_name)
+            criptosistema_Hill = hill.Hill(img_rgb, img_name)
             encoded_img_name = criptosistema_Hill.encriptar(img_name)
             QMessageBox.information(None, 'Éxito',
                                     'Encriptación realizada, puede encrontrar la imagen encriptada en: ' + encoded_img_name + '\n' + 'La clave con la que se encriptó se encuentra en: ' + image_file_name + '_key.png',
@@ -256,9 +258,10 @@ def botonHill(input, encriptar):
             img_d.open_image(encoded_img_name)
         elif encriptar == False and txt_key.text() != '':
             key = txt_key.text()
-            img_dec_vec = hill.desencriptar(img, key)
+            img_dec_vec = hill.desencriptar(img_rgb, key)
             decoded_img_name = '{0}-descifrada.{1}'.format(img_name, img_extension)
-            imageio.imwrite(decoded_img_name, img_dec_vec)
+            img_dec_gbr = cv2.cvtColor(img_dec_vec.astype(np.uint8), cv2.COLOR_RGB2BGR)
+            cv2.imwrite(decoded_img_name, img_dec_gbr)
             QMessageBox.information(None, 'Éxito',
                                     'Desencriptación realizada, puede encrontrar la imagen desencriptada en: ' + decoded_img_name,
                                     QMessageBox.Ok)
