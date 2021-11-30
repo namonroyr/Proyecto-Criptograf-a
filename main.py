@@ -296,11 +296,10 @@ def botonHill(input, encriptar):
 
 def botonVigenere(clave, input, output, encriptar):
     texto_cifrado = input.toPlainText().strip()
-    texto_cifrado = texto_cifrado.lower()
     if encriptar:
-        output.setPlainText(vg.encriptar(texto_cifrado.lower(), clave))
+        output.setPlainText(vg.encriptar(texto_cifrado, clave))
     else:
-        output.setPlainText(vg.decriptar(texto_cifrado.lower(), clave))
+        output.setPlainText(vg.decriptar(texto_cifrado, clave))
 
 
 def botonSustitucion(clave, input, output, encriptar):
@@ -859,7 +858,6 @@ alpha = list(alphabet_string)
 alphabet_list = [1]
 alphabet_list[0] = '-'
 alphabet_list.extend(alpha)
-print(alphabet_list)
 
 sustitucion_ca = QWidget()
 sus_layout = QHBoxLayout()
@@ -1354,7 +1352,6 @@ def criptanalisisHill(txt_plano, txt_cifrado):
 
 def criptanalisisSus(txt):
     alphabet_lower = string.ascii_lowercase
-
     txt_cifrado = txt.toPlainText().strip()
     cipher = sb.substitution(txt_cifrado)
     freq_mono = cipher.mono()
