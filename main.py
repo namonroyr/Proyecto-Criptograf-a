@@ -108,57 +108,76 @@ class CriptosistemaPermutacion(Criptosistema):
     def encriptar(self, input, output):
         m = self.clave[0]
         values = list(map(int, self.clave[1].split()))
-
-        if (len(set(values)) < m):
-            limpiarCampos()
-            input.setPlainText("Error: Ingresó valores repetidos o no ingreso {} valores".format(m))
-
-        for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
-            if a != b:
-                limpiarCampos()
-                input.setPlainText("Error: Debe ingresar los numeros del 1 al", m)
-                break
-
-        mat_permutacion = np.array([range(1, m + 1), values]).reshape(2, m)
         texto_claro = input.toPlainText().strip()
-        texto_separado = [texto_claro[i:i + m] for i in range(0, len(texto_claro), m)]
-
-        texto_cifrado = ""
-        for subtexto in texto_separado:
-            for indice in range(1, m + 1):
-                letra_cifrada = subtexto[int(mat_permutacion[1][int(np.where(mat_permutacion == indice)[1][0])]) - 1]
-                texto_cifrado += letra_cifrada
-
-        output.setPlainText(texto_cifrado)
+        comp = [i for i in range(1,len(texto_claro)+1)]
+        if (len(set(values)) < m or len(texto_claro) != len(set(values))):
+            limpiarCampos()
+            QMessageBox.critical(None, 'Error matriz',
+                                 "Error: Ingresó valores repetidos o no ingreso {} valores".format(len(texto_claro)),
+                                 QMessageBox.Ok)
+        elif (set(comp) != set(values)):
+            limpiarCampos()
+            QMessageBox.critical(None, 'Error matriz',
+                                 "No ingresó una permutación adecuada para el input",
+                                 QMessageBox.Ok)
+        else:
+            for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
+                if a != b:
+                    limpiarCampos()
+                    QMessageBox.critical(None, 'Error matriz',
+                                         "Error: Debe ingresar los numeros del 1 al ", m,
+                                         QMessageBox.Ok)
+                    break
+                else:
+                    mat_permutacion = np.array([range(1, m + 1), values]).reshape(2, m)
+                    texto_claro = input.toPlainText().strip()
+                    texto_separado = [texto_claro[i:i + m] for i in range(0, len(texto_claro), m)]
+            texto_cifrado = ""
+            for subtexto in texto_separado:
+                for indice in range(1, m + 1):
+                    letra_cifrada = subtexto[int(mat_permutacion[1][int(np.where(mat_permutacion == indice)[1][0])]) - 1]
+                    texto_cifrado += letra_cifrada
+            output.setPlainText(texto_cifrado)
 
     def desencriptar(self, input, output):
         m = self.clave[0]
         values = list(map(int, self.clave[1].split()))
-
-        if (len(set(values)) < m):
+        texto_cifrado = input.toPlainText().strip()
+        comp = [i for i in range(1,len(texto_cifrado)+1)]
+        print(values)
+        if (len(set(values)) < m or len(texto_cifrado) != len(set(values))):
             limpiarCampos()
-            input.setPlainText("Error: Ingresó valores repetidos o no ingreso {} valores".format(m))
-
-        for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
-            if a != b:
-                limpiarCampos()
-                input.setPlainText("Error: Debe ingresar los numeros del 1 al", m)
-                break
-
-        mat_inv_permutacion = np.array([range(1, m + 1), [x[0] for x in
+            QMessageBox.critical(None, 'Error matriz',
+                                 "Error: Ingresó valores repetidos o no ingreso {} valores".format(m),
+                                 QMessageBox.Ok)
+        elif (set(comp) != set(values)):
+            limpiarCampos()
+            QMessageBox.critical(None, 'Error matriz',
+                                 "No ingresó una permutación adecuada para el input",
+                                 QMessageBox.Ok)
+        else:
+            for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
+                if a != b:
+                    limpiarCampos()
+                    QMessageBox.critical(None, 'Error matriz',
+                                         "Error: Debe ingresar los numeros del 1 al ", m,
+                                         QMessageBox.Ok)
+                    break
+                else:
+                    mat_inv_permutacion = np.array([range(1, m + 1), [x[0] for x in
                                                           sorted(list(zip(tuple(range(1, m + 1)), tuple(values))),
                                                                  key=lambda x: x[1])]]).reshape(2, m)
-        texto_cifrado = input.toPlainText().strip()
-        texto_separado = [texto_cifrado[i:i + m] for i in range(0, len(texto_cifrado), m)]
+                    texto_cifrado = input.toPlainText().strip()
+                    texto_separado = [texto_cifrado[i:i + m] for i in range(0, len(texto_cifrado), m)]
 
-        texto_descifrado = ""
-        for subtexto in texto_separado:
-            for indice in range(1, m + 1):
-                letra_descifrada = subtexto[
-                    int(mat_inv_permutacion[1][int(np.where(mat_inv_permutacion == indice)[1][0])]) - 1]
-                texto_descifrado += letra_descifrada
+            texto_descifrado = ""
+            for subtexto in texto_separado:
+                for indice in range(1, m + 1):
+                    letra_descifrada = subtexto[
+                        int(mat_inv_permutacion[1][int(np.where(mat_inv_permutacion == indice)[1][0])]) - 1]
+                    texto_descifrado += letra_descifrada
 
-        output.setPlainText(texto_descifrado)
+            output.setPlainText(texto_descifrado)
 
 
 class PhotoLabel(QLabel):
