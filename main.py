@@ -296,7 +296,7 @@ def botonHill(input, encriptar):
 
 
 def botonVigenere(clave, input, output, encriptar):
-    texto_cifrado = input.toPlainText().strip()
+    texto_cifrado = input.toPlainText().strip().lower()
     if encriptar:
         output.setPlainText(vg.encriptar(texto_cifrado, clave))
     else:
