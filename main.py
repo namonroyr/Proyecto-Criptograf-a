@@ -310,12 +310,14 @@ def botonSustitucion(clave, input, output, encriptar):
     sus = sb.substitution(texto_cifrado)
     if encriptar:
         sus.permutar(clave)
-        print(sus.key)
-        output.setPlainText(sus.permutado.upper())
+        if len(set(k for j,k in sus.key.items())) < 26:
+            input.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+        else:
+            output.setPlainText(sus.permutado.upper())
     else:
         sus.permutar({v: k for k, v in clave.items()})
         if len(set(k for j,k in sus.key.items())) < 26:
-            output.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+            input.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
         else:
             output.setPlainText(sus.permutado.upper())
 
