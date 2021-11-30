@@ -299,9 +299,9 @@ def botonVigenere(clave, input, output, encriptar):
     texto_cifrado = input.toPlainText().strip()
     texto_cifrado = texto_cifrado.lower()
     if encriptar:
-        output.setPlainText(vg.encriptar(texto_cifrado, clave))
+        output.setPlainText(vg.encriptar(texto_cifrado.lower(), clave))
     else:
-        output.setPlainText(vg.decriptar(texto_cifrado, clave))
+        output.setPlainText(vg.decriptar(texto_cifrado.lower(), clave))
 
 
 def botonSustitucion(clave, input, output, encriptar):
