@@ -78,6 +78,7 @@ def decriptar(texto: str, llave: str):
     plano: str = ''
     texto = texto.lower()
     texto = ''.join([i for i in texto if i in string.ascii_lowercase])
+    llave = llave.lower()
     for i in range(len(texto)):
         inverso = 26 - (alphabet[llave[i % len(llave)]])
         plano = plano + string.ascii_lowercase[(alphabet[texto[i]] + inverso) % 26]
