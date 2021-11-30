@@ -313,9 +313,11 @@ def botonSustitucion(clave, input, output, encriptar):
         print(sus.key)
         output.setPlainText(sus.permutado.upper())
     else:
-        print({v: k for k, v in clave.items()})
         sus.permutar({v: k for k, v in clave.items()})
-        output.setPlainText(sus.permutado.upper())
+        if set(k for j,k in sus.key)
+            output.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+        else:
+            output.setPlainText(sus.permutado.upper())
 
 
 def crearBoton(cifrado):
