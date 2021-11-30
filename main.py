@@ -1059,17 +1059,17 @@ monoeng_table.resizeColumnsToContents()
 monoeng_table.verticalHeader().hide()
 header = monoeng_table.horizontalHeader()
 
-for row in range(13):
+for row in range(1,14):
     item = alphabet_list[row]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-    monoeng_table.setItem(row, 0, cell)
+    monoeng_table.setItem(row-1, 0, cell)
 
 for row in range(13):
-    item = alphabet_list[row + 13]
+    item = alphabet_list[row + 14]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-    monoeng_table.setItem(row, 2, cell)
+    monoeng_table.setItem(row-1, 2, cell)
 
 letters_prob = [0.082, 0.015, 0.028, 0.043, 0.127, 0.022, 0.020, 0.061, 0.070,
                 0.002, 0.008, 0.040, 0.240, 0.067, 0.075, 0.019, 0.001, 0.060,
