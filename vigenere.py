@@ -1,7 +1,7 @@
 import string
 import functools as ft
 import math as mth
-
+import typing
 FreqIngles = [.082, .015, .028, .043, .127, .022, .020, .061,
               .070, .002, .008, .040, .024, .067, .075, .019,
               .001, .060, .063, .091, .028, .010, .023, .001,
