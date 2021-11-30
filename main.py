@@ -311,9 +311,10 @@ def botonSustitucion(clave, input, output, encriptar):
     sus = sb.substitution(texto_cifrado)
     if encriptar:
         sus.permutar(clave)
+        print(sus.key)
         output.setPlainText(sus.permutado.upper())
     else:
-        sus.invert()
+        sus.permutar({v: k for k, v in clave.items()})
         output.setPlainText(sus.permutado.upper())
 
 
