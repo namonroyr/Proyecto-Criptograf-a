@@ -1450,7 +1450,7 @@ def aplicar(lista_caracteres, txt_in, txt_out):
     cypher = sb.substitution(txt_in.toPlainText().strip())
     cypher.permutar(llave)
     txt_out.setPlainText(str(cypher.permutado))
-    criptanalisisSus(txt_out)
+    #criptanalisisSus(txt_out)
 
 
 """
