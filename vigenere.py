@@ -20,7 +20,7 @@ def encriptar(texto: str, llave: str) -> str:
     return ''.join([string.ascii_lowercase[i] for i in r]).upper()
 
 
-def kasiski(texto: str) -> list:
+def kasiski(texto: str) -> List:
     texto = texto.lower()
     candidates = list()
     triplas = set()
@@ -61,7 +61,7 @@ def indCoincidence(x: str):
     return sum([frequency[i] * (frequency[i] - 1) / (len(x) * (len(x) - 1)) for i in string.ascii_lowercase])
 
 
-def Mg(y: str) -> list[float]:
+def Mg(y: str) -> List[float]:
     freq = [y.count(string.ascii_lowercase[i]) for i in range(len(string.ascii_lowercase))]
     Mgs = []
     n = len(y)
@@ -84,7 +84,7 @@ def decriptar(texto: str, llave: str) -> str:
     return plano.upper()
 
 
-def examinarM(subcadenas: list[str], m: int) -> float:
+def examinarM(subcadenas: List[str], m: int) -> float:
     listaPrima = list()
     for i in range(m):
         palabra = ''.join([subcadena[i] for subcadena in subcadenas if len(subcadena) > i])
@@ -93,7 +93,7 @@ def examinarM(subcadenas: list[str], m: int) -> float:
     return sum(listaSecunda) / float(len(listaPrima))
 
 
-def vigenereAttack(texto: str) -> list[(str, str)]:
+def vigenereAttack(texto: str) -> List[(str, str)]:
     texto = texto.lower()
     texto = ''.join([i for i in texto if i in string.ascii_lowercase])
     m_p = kasiski(texto)
