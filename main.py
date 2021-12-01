@@ -1,8 +1,9 @@
 import sys
 import math
+import cv2
 import numpy as np
 import string
-import imageio
+import hill
 import vigenere as vg
 import substitution as sb
 import string
@@ -22,7 +23,7 @@ from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegio
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QCursor
-import hill
+
 
 abc = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7, "I": 8, "J": 9, "K": 10,
        "L": 11, "M": 12, "N": 13, "O": 14, "P": 15, "Q": 16, "R": 17, "S": 18, "T": 19, "U": 20,
@@ -107,57 +108,75 @@ class CriptosistemaPermutacion(Criptosistema):
     def encriptar(self, input, output):
         m = self.clave[0]
         values = list(map(int, self.clave[1].split()))
-
-        if (len(set(values)) < m):
-            limpiarCampos()
-            input.setPlainText("Error: Ingresó valores repetidos o no ingreso {} valores".format(m))
-
-        for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
-            if a != b:
-                limpiarCampos()
-                input.setPlainText("Error: Debe ingresar los numeros del 1 al", m)
-                break
-
-        mat_permutacion = np.array([range(1, m + 1), values]).reshape(2, m)
         texto_claro = input.toPlainText().strip()
-        texto_separado = [texto_claro[i:i + m] for i in range(0, len(texto_claro), m)]
-
-        texto_cifrado = ""
-        for subtexto in texto_separado:
-            for indice in range(1, m + 1):
-                letra_cifrada = subtexto[int(mat_permutacion[1][int(np.where(mat_permutacion == indice)[1][0])]) - 1]
-                texto_cifrado += letra_cifrada
-
-        output.setPlainText(texto_cifrado)
+        comp = [i for i in range(1,len(texto_claro)+1)]
+        if (len(set(values)) < m or len(texto_claro) != len(set(values))):
+            limpiarCampos()
+            QMessageBox.critical(None, 'Error matriz',
+                                 "Error: Ingresó valores repetidos o no ingreso {} valores".format(len(texto_claro)),
+                                 QMessageBox.Ok)
+        elif (set(comp) != set(values)):
+            limpiarCampos()
+            QMessageBox.critical(None, 'Error matriz',
+                                 "No ingresó una permutación adecuada para el input",
+                                 QMessageBox.Ok)
+        else:
+            for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
+                if a != b:
+                    limpiarCampos()
+                    QMessageBox.critical(None, 'Error matriz',
+                                         "Error: Debe ingresar los numeros del 1 al ", m,
+                                         QMessageBox.Ok)
+                    break
+                else:
+                    mat_permutacion = np.array([range(1, m + 1), values]).reshape(2, m)
+                    texto_claro = input.toPlainText().strip()
+                    texto_separado = [texto_claro[i:i + m] for i in range(0, len(texto_claro), m)]
+            texto_cifrado = ""
+            for subtexto in texto_separado:
+                for indice in range(1, m + 1):
+                    letra_cifrada = subtexto[int(mat_permutacion[1][int(np.where(mat_permutacion == indice)[1][0])]) - 1]
+                    texto_cifrado += letra_cifrada
+            output.setPlainText(texto_cifrado)
 
     def desencriptar(self, input, output):
         m = self.clave[0]
         values = list(map(int, self.clave[1].split()))
-
-        if (len(set(values)) < m):
+        texto_cifrado = input.toPlainText().strip()
+        comp = [i for i in range(1,len(texto_cifrado)+1)]
+        if (len(set(values)) < m or len(texto_cifrado) != len(set(values))):
             limpiarCampos()
-            input.setPlainText("Error: Ingresó valores repetidos o no ingreso {} valores".format(m))
-
-        for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
-            if a != b:
-                limpiarCampos()
-                input.setPlainText("Error: Debe ingresar los numeros del 1 al", m)
-                break
-
-        mat_inv_permutacion = np.array([range(1, m + 1), [x[0] for x in
+            QMessageBox.critical(None, 'Error matriz',
+                                 "Error: Ingresó valores repetidos o no ingreso {} valores".format(m),
+                                 QMessageBox.Ok)
+        elif (set(comp) != set(values)):
+            limpiarCampos()
+            QMessageBox.critical(None, 'Error matriz',
+                                 "No ingresó una permutación adecuada para el input",
+                                 QMessageBox.Ok)
+        else:
+            for a, b in zip(tuple(range(1, m + 1)), tuple(sorted(values))):
+                if a != b:
+                    limpiarCampos()
+                    QMessageBox.critical(None, 'Error matriz',
+                                         "Error: Debe ingresar los numeros del 1 al ", m,
+                                         QMessageBox.Ok)
+                    break
+                else:
+                    mat_inv_permutacion = np.array([range(1, m + 1), [x[0] for x in
                                                           sorted(list(zip(tuple(range(1, m + 1)), tuple(values))),
                                                                  key=lambda x: x[1])]]).reshape(2, m)
-        texto_cifrado = input.toPlainText().strip()
-        texto_separado = [texto_cifrado[i:i + m] for i in range(0, len(texto_cifrado), m)]
+                    texto_cifrado = input.toPlainText().strip()
+                    texto_separado = [texto_cifrado[i:i + m] for i in range(0, len(texto_cifrado), m)]
 
-        texto_descifrado = ""
-        for subtexto in texto_separado:
-            for indice in range(1, m + 1):
-                letra_descifrada = subtexto[
-                    int(mat_inv_permutacion[1][int(np.where(mat_inv_permutacion == indice)[1][0])]) - 1]
-                texto_descifrado += letra_descifrada
+            texto_descifrado = ""
+            for subtexto in texto_separado:
+                for indice in range(1, m + 1):
+                    letra_descifrada = subtexto[
+                        int(mat_inv_permutacion[1][int(np.where(mat_inv_permutacion == indice)[1][0])]) - 1]
+                    texto_descifrado += letra_descifrada
 
-        output.setPlainText(texto_descifrado)
+            output.setPlainText(texto_descifrado)
 
 
 class PhotoLabel(QLabel):
@@ -246,9 +265,10 @@ def botonHill(input, encriptar):
     img_extension = image_file_name.split('.')[1]
     file_ext = ['jpg', 'png', 'jpeg']
     if image_file_name != "" and img_extension in file_ext:
-        img = imageio.imread(image_file_name)
+        img = cv2.imread(image_file_name)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if encriptar == True:
-            criptosistema_Hill = hill.Hill(img, img_name)
+            criptosistema_Hill = hill.Hill(img_rgb, img_name)
             encoded_img_name = criptosistema_Hill.encriptar(img_name)
             QMessageBox.information(None, 'Éxito',
                                     'Encriptación realizada, puede encrontrar la imagen encriptada en: ' + encoded_img_name + '\n' + 'La clave con la que se encriptó se encuentra en: ' + image_file_name + '_key.png',
@@ -256,9 +276,10 @@ def botonHill(input, encriptar):
             img_d.open_image(encoded_img_name)
         elif encriptar == False and txt_key.text() != '':
             key = txt_key.text()
-            img_dec_vec = hill.desencriptar(img, key)
+            img_dec_vec = hill.desencriptar(img_rgb, key)
             decoded_img_name = '{0}-descifrada.{1}'.format(img_name, img_extension)
-            imageio.imwrite(decoded_img_name, img_dec_vec)
+            img_dec_gbr = cv2.cvtColor(img_dec_vec.astype(np.uint8), cv2.COLOR_RGB2BGR)
+            cv2.imwrite(decoded_img_name, img_dec_gbr)
             QMessageBox.information(None, 'Éxito',
                                     'Desencriptación realizada, puede encrontrar la imagen desencriptada en: ' + decoded_img_name,
                                     QMessageBox.Ok)
@@ -288,10 +309,16 @@ def botonSustitucion(clave, input, output, encriptar):
     sus = sb.substitution(texto_cifrado)
     if encriptar:
         sus.permutar(clave)
-        output.setPlainText(sus.permutado.upper())
+        if len(set(k for j,k in sus.key.items())) < 26:
+            output.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+        else:
+            output.setPlainText(sus.permutado.upper())
     else:
-        sus.invert()
-        output.setPlainText(sus.permutado.upper())
+        sus.permutar({v: k for k, v in clave.items()})
+        if len(set(k for j,k in sus.key.items())) < 26:
+            output.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+        else:
+            output.setPlainText(sus.permutado.upper())
 
 
 def crearBoton(cifrado):
@@ -833,7 +860,10 @@ stackedLayout.addWidget(permutacion_ca)
 '''
 # Sustitución*********************************
 alphabet_string = string.ascii_uppercase
-alphabet_list = list(alphabet_string)
+alpha = list(alphabet_string)
+alphabet_list = [1]
+alphabet_list[0] = '-'
+alphabet_list.extend(alpha)
 
 sustitucion_ca = QWidget()
 sus_layout = QHBoxLayout()
@@ -1029,17 +1059,17 @@ monoeng_table.resizeColumnsToContents()
 monoeng_table.verticalHeader().hide()
 header = monoeng_table.horizontalHeader()
 
-for row in range(13):
+for row in range(1,14):
     item = alphabet_list[row]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-    monoeng_table.setItem(row, 0, cell)
+    monoeng_table.setItem(row-1, 0, cell)
 
 for row in range(13):
-    item = alphabet_list[row + 13]
+    item = alphabet_list[row + 14]
     cell = QTableWidgetItem(item)
     cell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-    monoeng_table.setItem(row, 2, cell)
+    monoeng_table.setItem(row-1, 2, cell)
 
 letters_prob = [0.082, 0.015, 0.028, 0.043, 0.127, 0.022, 0.020, 0.061, 0.070,
                 0.002, 0.008, 0.040, 0.240, 0.067, 0.075, 0.019, 0.001, 0.060,
@@ -1328,7 +1358,6 @@ def criptanalisisHill(txt_plano, txt_cifrado):
 
 def criptanalisisSus(txt):
     alphabet_lower = string.ascii_lowercase
-
     txt_cifrado = txt.toPlainText().strip()
     cipher = sb.substitution(txt_cifrado)
     freq_mono = cipher.mono()
@@ -1415,13 +1444,13 @@ def criptanalisisSus(txt):
 
 def aplicar(lista_caracteres, txt_in, txt_out):
     llave = {string.ascii_lowercase[i]: str(lista_caracteres[i].currentText()).lower() for i in range(26)}
-    if len(set(j for i,j in llave.items())) < 26:
-        txt_out.setPlainText("Esta sustitución no es válida. La función de esta sustitución no es inyectiva. Por favor inténtelo de nuevo")
-        return
+    #if len(set(j for i,j in llave.items())) < 26:
+    #    txt_out.setPlainText("Esta sustitución no es válida. La función de esta sustitución no es inyectiva. Por favor inténtelo de nuevo")
+    #    return
     cypher = sb.substitution(txt_in.toPlainText().strip())
     cypher.permutar(llave)
     txt_out.setPlainText(str(cypher.permutado))
-    criptanalisisSus(txt_out)
+    #criptanalisisSus(txt_out)
 
 
 """

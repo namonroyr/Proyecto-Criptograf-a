@@ -1,7 +1,7 @@
 import string
 import functools as ft
 import math as mth
-
+from typing import List
 FreqIngles = [.082, .015, .028, .043, .127, .022, .020, .061,
               .070, .002, .008, .040, .024, .067, .075, .019,
               .001, .060, .063, .091, .028, .010, .023, .001,
@@ -10,7 +10,7 @@ FreqIngles = [.082, .015, .028, .043, .127, .022, .020, .061,
 alphabet = {u[0]: u[1] for u in zip(string.ascii_lowercase, range(0, 26))}
 
 
-def encriptar(texto: str, llave: str) -> str:
+def encriptar(texto: str, llave: str):
     texto = texto.lower()
     llave = llave.lower()
     texto = ''.join([u for u in texto if u in string.ascii_lowercase])
@@ -20,7 +20,7 @@ def encriptar(texto: str, llave: str) -> str:
     return ''.join([string.ascii_lowercase[i] for i in r]).upper()
 
 
-def kasiski(texto: str) -> list:
+def kasiski(texto: str):
     texto = texto.lower()
     candidates = list()
     triplas = set()
@@ -61,7 +61,7 @@ def indCoincidence(x: str):
     return sum([frequency[i] * (frequency[i] - 1) / (len(x) * (len(x) - 1)) for i in string.ascii_lowercase])
 
 
-def Mg(y: str) -> list[float]:
+def Mg(y: str):
     freq = [y.count(string.ascii_lowercase[i]) for i in range(len(string.ascii_lowercase))]
     Mgs = []
     n = len(y)
@@ -74,17 +74,18 @@ def Mg(y: str) -> list[float]:
     return Mgs
 
 
-def decriptar(texto: str, llave: str) -> str:
+def decriptar(texto: str, llave: str):
     plano: str = ''
     texto = texto.lower()
     texto = ''.join([i for i in texto if i in string.ascii_lowercase])
+    llave = llave.lower()
     for i in range(len(texto)):
         inverso = 26 - (alphabet[llave[i % len(llave)]])
         plano = plano + string.ascii_lowercase[(alphabet[texto[i]] + inverso) % 26]
     return plano.upper()
 
 
-def examinarM(subcadenas: list[str], m: int) -> float:
+def examinarM(subcadenas: List[str], m: int):
     listaPrima = list()
     for i in range(m):
         palabra = ''.join([subcadena[i] for subcadena in subcadenas if len(subcadena) > i])
@@ -93,7 +94,7 @@ def examinarM(subcadenas: list[str], m: int) -> float:
     return sum(listaSecunda) / float(len(listaPrima))
 
 
-def vigenereAttack(texto: str) -> list[(str, str)]:
+def vigenereAttack(texto: str):
     texto = texto.lower()
     texto = ''.join([i for i in texto if i in string.ascii_lowercase])
     m_p = kasiski(texto)

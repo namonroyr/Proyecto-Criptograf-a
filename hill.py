@@ -1,5 +1,6 @@
 import math
-import imageio
+import cv2
+#import imageio
 import os.path
 import numpy as np
 import sympy
@@ -50,7 +51,8 @@ class Hill:
         img_key[-1][2] = int(self.w/Mod)
         img_key[-1][3] = self.w % Mod
         img_ui8 = img_key.astype(np.uint8)
-        imageio.imwrite(file_name+"_key.png", img_ui8)
+        #img_key_gbr = cv2.cvtColor(img_ui8, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(file_name+"_key.png", img_ui8)
 
     @property
     def key(self):
@@ -72,14 +74,16 @@ class Hill:
                 Enc2 = np.resize(Enc2,(Enc2.shape[0],Enc2.shape[1],1))
                 Enc3 = np.resize(Enc3,(Enc3.shape[0],Enc3.shape[1],1))
                 Encrypted[i * n:(i + 1) * n, j * n:(j + 1) * n] += np.concatenate((Enc1,Enc2,Enc3), axis = 2)
-        imageio.imwrite(file_name+'_cifrado.png', Encrypted)
+        Enc_gbr = cv2.cvtColor(Encrypted.astype(np.uint8), cv2.COLOR_RGB2BGR)
+        cv2.imwrite(file_name+'_cifrado.png', Enc_gbr)
         return file_name+'_cifrado.png'
 
 def desencriptar(Enc, key):
     nl = int(Enc.shape[0])
     nw = int(Enc.shape[1])
     Mod = 256
-    A = imageio.imread(key)
+    A = cv2.imread(key, cv2.IMREAD_GRAYSCALE)
+    #A = cv2.cvtColor(key_gbr, cv2.COLOR_BGR2RGB)
     n = int(A.shape[0] - 1)
     l = int(A[-1][0] * Mod + A[-1][1])
     w = int(A[-1][2] * Mod + A[-1][3])
