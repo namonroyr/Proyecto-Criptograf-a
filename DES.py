@@ -1,4 +1,5 @@
 
+import numpy as np
 
 def hextobin(h):
     mp = {'0' : "0000",
@@ -65,4 +66,43 @@ E = [32, 1 , 2 , 3 , 4 , 5 , 4 , 5,
          22, 23, 24, 25, 24, 25, 26, 27,
          28, 29, 28, 29, 30, 31, 32, 1 ]
 
-print(len(E))
+IP_2 = [32, 1 , 2 , 3 , 4 , 5 , 4 , 5,
+         6 , 7 , 8 , 9 , 8 , 9 , 10, 11,
+         12, 13, 12, 13, 14, 15, 16, 17,
+         16, 17, 18, 19, 20, 21, 20, 21,
+         22, 23, 24, 25, 24, 25, 26, 27,
+         28, 29, 28, 29, 30, 31, 32, 1 ]
+
+shift_table = [1, 1, 2, 2,
+                2, 2, 2, 2,
+                1, 2, 2, 2,
+                2, 2, 2, 1 ]
+
+def shiftleft(key,n):
+    return key[n:] + key[:n]
+
+def create_subkeys(key):
+    key1 = [key[i] for i in IP_1]
+    left = key1[:28]
+    right = key1[28:]
+    for i in range(16):
+        left = shiftleft(left,shift_table[i])
+        right = shiftleft(right,shift_table[i])
+        yield left, right
+
+def permutate_subkey(left,right):
+    return [(left+right)[i] for i in IP_2]
+
+def permutated_subkeys(key):
+    for left, right in create_subkeys(key):
+        yield permutate_subkey(left,right)
+
+def permutate_message(m,permutation):
+    return [m[i] for i in permutation]
+
+def xor(x,y):
+    return "".join(np.logical_xor(
+        np.array(list(x)).astype(np.int64).astype(bool),
+        np.array(list(y)).astype(np.int64).astype(bool)).astype(np.int64).astype(str))
+
+print(xor("0110","0101"))
