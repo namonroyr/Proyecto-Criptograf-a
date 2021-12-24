@@ -227,10 +227,12 @@ class des():
         return self.run(key, text, DECRYPT, padding)
     
 if __name__ == '__main__':
+    import binascii
     key = "AABB09182736CCDD"
     text= "123456ABCD132536"
     d = des()
     r = d.encrypt(key,text)
     r2 = d.decrypt(key,r)
+    print(r)
     print("Ciphered: {}".format(r))
     print("Deciphered: ", r2)
