@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import string
 import hill
+import AES
 import vigenere as vg
 import substitution as sb
 import string
@@ -33,12 +34,12 @@ inv_abc = {value: key for key, value in abc.items()}
 criptosistemas = ["Criptosistema Afín", "Criptosistema por Desplazamiento",
                   "Criptosistema por Permutación", "Criptosistema por Sustitución",
                   "Criptosistema de Vigenere"]
-
+cripto_img = ["Criptosistema Clásico Hill", "Criptosistema en Bloque DES", "Criptosistema en Bloque 3-DES",
+                "Criptosistema en Bloque AES"]
 
 class Criptosistema:
     def __init__(self, clave):
         self.clave = clave
-
 
 class CriptosistemaDesplazamiento(Criptosistema):
     def __init__(self, clave):
