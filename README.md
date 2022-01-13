@@ -1,4 +1,4 @@
-# Criptography Tool Desktop Application
+# Cryptography Tool Desktop Application
 ## Built With 🛠️
 
 * [Python](https://www.python.org/)
@@ -12,14 +12,14 @@
    ```
 2. Create virtual enviroment (please verify you have venv in your system)
    ```
-   python -m venv criptoTool
+   python -m venv cryptool
    ```
 3. Activate virtual enviroment 
    ```
    Linux:
-   source criptoTool/bin/activate
+   source criptool/bin/activate
    Windows:
-   criptoTool\Scripts\activate
+   criptool\Scripts\activate
    ```
 4. Install dependencies
 
