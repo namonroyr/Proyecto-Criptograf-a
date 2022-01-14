@@ -1,4 +1,5 @@
 import sys
+import os
 import math
 import cv2
 import numpy as np
@@ -8,8 +9,8 @@ import AES
 import vigenere as vg
 import substitution as sb
 import classic_crypto as cc
+import operation_modes as opm
 import string
-import sip
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, QFile, QDate, QTime, QSize, QTimer, QRect, QRegExp, QTranslator,
                           QLocale, QLibraryInfo, QSize)
@@ -27,7 +28,7 @@ class PhotoLabel(QLabel):
         super().__init__(*args, **kwargs)
         self.setAlignment(Qt.AlignCenter)
         # self.resize(300,650)
-        self.setText('\n\n Arrastre la imagen aquí \n\n')
+        self.setText('\n\n Drop image Here \n\n')
         self.setStyleSheet('''
         QLabel {
             border: 4px dashed #aaa;
@@ -77,6 +78,29 @@ class Template(QWidget):
     def open_image(self, filename=None):
         self.photo.setPixmap(QPixmap(filename))
 
+def crearBoton(cifrado):
+    if cifrado:
+        boton = QPushButton(text="Encrypt")
+    else:
+        boton = QPushButton(text="Decrypt")
+    boton.setStyleSheet(
+        """
+        QPushButton {
+            border-radius:5%;
+            padding:5px;
+            background:#52F6E0;
+            font: 12pt;
+            font: semi-bold;
+        }
+        QPushButton:hover {
+            background-color: #13A5EE;
+            color:white;
+            font: bold;
+            }
+        """)
+    boton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+    boton.setFixedWidth(150)
+    return boton
 
 class WelcomeScreen(QDialog):
     def __init__(self):
@@ -111,7 +135,7 @@ class WelcomeScreen(QDialog):
         self.bloque_button.setStyleSheet(buttonStyle)
         self.gamma_button.setStyleSheet(buttonStyle)
         self.clasicos_button.clicked.connect(self.gotoclasicos)
-        #self.bloque_button.clicked.connect(self.gotobloque)
+        self.bloque_button.clicked.connect(self.gotobloque)
         #self.gamma_button.clicked.connect(self.gotogamma)
         self.hbox1.addWidget(self.image)
         self.hbox2.addWidget(self.clasicos_button)
@@ -123,9 +147,10 @@ class WelcomeScreen(QDialog):
         #self.show()
 
     def gotoclasicos(self):
-        clasicos = ClasicosScreen()
-        widget.addWidget(clasicos)
-        widget.setCurrentIndex(widget.currentIndex()+1)
+        widget.setCurrentIndex(1)
+
+    def gotobloque(self):
+        widget.setCurrentIndex(2)
 
 class ClasicosScreen(QDialog):
 
@@ -217,29 +242,6 @@ class ClasicosScreen(QDialog):
         """
         Buttons ----------------------------------------------------------
         """
-        def crearBoton(cifrado):
-            if cifrado:
-                boton = QPushButton(text="Encrypt")
-            else:
-                boton = QPushButton(text="Decrypt")
-            boton.setStyleSheet(
-                """
-                QPushButton {
-                    border-radius:5%;
-                    padding:5px;
-                    background:#52F6E0;
-                    font: 12pt;
-                    font: semi-bold;
-                }
-                QPushButton:hover {
-                    background-color: #13A5EE;
-                    color:white;
-                    font: bold;
-                    }
-                """)
-            boton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
-            boton.setFixedWidth(150)
-            return boton
 
         def botonAfin(clave, input, output, encriptar):
             print("Flag0")
@@ -410,7 +412,7 @@ class ClasicosScreen(QDialog):
         """
         ****************-----------------Hill Tab-----------------------*********************
         """
-        def botonHill(input, encriptar):
+        def botonHill(input, output_ref, encriptar):
             image_file_name = input.file
             img_name = image_file_name.split('.')[0]
             img_extension = image_file_name.split('.')[1]
@@ -424,7 +426,7 @@ class ClasicosScreen(QDialog):
                     QMessageBox.information(None, 'Éxito',
                                             'Encriptación realizada, puede encrontrar la imagen encriptada en: ' + encoded_img_name + '\n' + 'La clave con la que se encriptó se encuentra en: ' + image_file_name + '_key.png',
                                             QMessageBox.Ok)
-                    img_d.open_image(encoded_img_name)
+                    output_ref.open_image(encoded_img_name)
                 elif encriptar == False and txt_key.text() != '':
                     key = txt_key.text()
                     img_dec_vec = hill.desencriptar(img_rgb, key)
@@ -434,10 +436,11 @@ class ClasicosScreen(QDialog):
                     QMessageBox.information(None, 'Éxito',
                                             'Desencriptación realizada, puede encrontrar la imagen desencriptada en: ' + decoded_img_name,
                                             QMessageBox.Ok)
-                    img_c.open_image(decoded_img_name)
+                    output_ref.open_image(decoded_img_name)
+                    #print()
                 else:
                     QMessageBox.critical(None, 'Clave no ingresada',
-                                         'Sleccione el archivo que contiene la clave para descifrar la imagen (.png)',
+                                         'Seleccione el archivo que contiene la clave para descifrar la imagen (.png)',
                                          QMessageBox.Ok)
             else:
                 QMessageBox.critical(None, 'Imagen no ingresada',
@@ -445,13 +448,13 @@ class ClasicosScreen(QDialog):
                                      QMessageBox.Ok)
 
         Hill = QtWidgets.QWidget()
-        tabWidget.addTab(Hill, "Hill - Imagen")
+        tabWidget.addTab(Hill, "Hill - Image")
         gridHill = QGridLayout(Hill)
         gridHill.setGeometry(QtCore.QRect(10, 10, 1030, 600))
         img_c = Template()
         img_d = Template()
         txt_img = QLabel()
-        txt_img.setText("Imagen a encriptar / encriptada: ")
+        txt_img.setText("Image to encrypt / decrypted: ")
         txt_img.setAlignment(Qt.AlignCenter)
         txt_img.setStyleSheet('''
         QLabel {
@@ -459,7 +462,7 @@ class ClasicosScreen(QDialog):
             font-family: Segoe UI;
         }''')
         txt_img_d = QLabel()
-        txt_img_d.setText("Imagen a desencriptar / desencriptada: ")
+        txt_img_d.setText("Imagen to decrypt / encrypted: ")
         txt_img_d.setAlignment(Qt.AlignCenter)
         txt_img_d.setStyleSheet('''
         QLabel {
@@ -468,9 +471,9 @@ class ClasicosScreen(QDialog):
         }''')
         boton_cifrar_hill = crearBoton(cifrado=True)
         boton_descifrar_hill = crearBoton(cifrado=False)
-        boton_cifrar_hill.clicked.connect(lambda: botonHill(img_c, True))
-        boton_descifrar_hill.clicked.connect(lambda: botonHill(img_d, False))
-        boton_limpiar = QPushButton(text="Limpiar")
+        boton_cifrar_hill.clicked.connect(lambda: botonHill(img_c, img_d, True))
+        boton_descifrar_hill.clicked.connect(lambda: botonHill(img_d, img_c, False))
+        boton_limpiar = QPushButton(text="Clean")
         aux_style = """
         QPushButton {
             border-radius:5%;
@@ -490,27 +493,26 @@ class ClasicosScreen(QDialog):
 
         def clean(layout, img_c, img_d, boton_cifrar_hill, boton_descifrar_hill):
             txt_key.setText('')
-            sip.delete(boton_cifrar_hill)
-            sip.delete(boton_descifrar_hill)
-            sip.delete(img_c)
-            sip.delete(img_d)
+            boton_cifrar_hill.setParent(None)
+            boton_descifrar_hill.setParent(None)
+            img_c.setParent(None)
+            img_d.setParent(None)
             img_c = Template()
             img_d = Template()
             boton_cifrar_hill = crearBoton(cifrado=True)
             boton_descifrar_hill = crearBoton(cifrado=False)
-            boton_cifrar_hill.clicked.connect(lambda: botonHill(img_c, True))
-            boton_descifrar_hill.clicked.connect(lambda: botonHill(img_d, False))
+            boton_cifrar_hill.clicked.connect(lambda: botonHill(img_c, img_d, True))
+            boton_descifrar_hill.clicked.connect(lambda: botonHill(img_d, img_c, False))
             gridHill.addWidget(img_c, 1, 0, 4, 1)
             gridHill.addWidget(img_d, 1, 2, 4, 1)
             gridHill.addWidget(boton_cifrar_hill, 2, 1)
             gridHill.addWidget(boton_descifrar_hill, 3, 1)
 
-        boton_browsekey = QPushButton(text="Clave")
+        boton_browsekey = QPushButton(text="Key")
         boton_browsekey.setStyleSheet(aux_style)
         boton_browsekey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         boton_browsekey.setFixedWidth(150)
         boton_browsekey.clicked.connect(lambda: browse_key())
-
 
         def browse_key():
             fname = QFileDialog.getOpenFileName(None, 'Select key file', QtCore.QDir.rootPath())
@@ -552,8 +554,9 @@ class ClasicosScreen(QDialog):
         ****************-----------------criptanalysis Tab-----------------------*********************
         """
 
-        criptoitems = ["Criptoanálisis Afín", "Criptoanálisis Desplazamiento", "Criptoanálisis Hill / Permutación", "Criptoanálisis Sustitución",
-                       "Criptoanálisis Vigenere"]
+        criptoitems = ["Affine cipher", "Shift cipher",
+                          "Hill/Permutation cipher", "Substitution cipher",
+                          "Vigenère cipher"]
 
         def vigenereAnalisis(input_criptoanalysis, output_descifrado):
             texto = input_criptoanalysis.toPlainText().strip()
@@ -636,29 +639,31 @@ class ClasicosScreen(QDialog):
         afin_ca = QWidget()
         afinLayout = QGridLayout()
         input_label = QLabel()
-        input_label.setText("Texto Cifrado")
+        input_label.setText("Cipher Text")
         input_criptoanalysisafin = QPlainTextEdit()
         input_criptoanalysisafin.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         decript_label = QLabel()
-        decript_label.setText("Llave / Texto Claro")
+        decript_label.setText("Key / Plain Text")
         output_descifradoafin = QPlainTextEdit()
         output_descifradoafin.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_descifradoafin.setReadOnly(True)
         boton_submitafin = QPushButton(text="Submit")
-        boton_submitafin.setStyleSheet(
-            """
-            QPushButton {
-                border:1px solid #161616;
-                border-radius:5%;
-                padding:5px;
-                background:#145795;
-                color:white;
+        submit_style = """
+        QPushButton {
+            width: 70px;
+            border-radius:5%;
+            padding:5px;
+            background:#52F6E0;
+            font: 12pt;
+            font: semi-bold;
+        }
+        QPushButton:hover {
+            background-color: #13A5EE;
+            color:white;
+            font: bold;
             }
-            QPushButton:hover {
-                background-color:#0B3862;
-                font: bold;
-            }
-            """)
+        """
+        boton_submitafin.setStyleSheet(submit_style)
         afinLayout.addWidget(input_label, 0, 1)
         afinLayout.addWidget(decript_label, 0, 2)
         afinLayout.addWidget(input_criptoanalysisafin, 1, 1)
@@ -671,29 +676,16 @@ class ClasicosScreen(QDialog):
         des_ca = QWidget()
         desLayout = QGridLayout()
         input_label = QLabel()
-        input_label.setText("Texto Cifrado")
+        input_label.setText("Cipher Text")
         input_criptoanalysisDesplazamiento = QPlainTextEdit()
         input_criptoanalysisDesplazamiento.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         decript_label = QLabel()
-        decript_label.setText("Llave / Texto Claro")
+        decript_label.setText("Key / Plain Text")
         output_descifradoDesplazamiento = QPlainTextEdit()
         output_descifradoDesplazamiento.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_descifradoDesplazamiento.setReadOnly(True)
         boton_submitDesplazamiento = QPushButton(text="Submit")
-        boton_submitDesplazamiento.setStyleSheet(
-            """
-            QPushButton {
-                border:1px solid #161616;
-                border-radius:5%;
-                padding:5px;
-                background:#145795;
-                color:white;
-            }
-            QPushButton:hover {
-                background-color:#0B3862;
-                font: bold;
-            }
-            """)
+        boton_submitDesplazamiento.setStyleSheet(submit_style)
         desLayout.addWidget(input_label, 0, 1)
         desLayout.addWidget(decript_label, 0, 2)
         desLayout.addWidget(input_criptoanalysisDesplazamiento, 1, 1)
@@ -707,47 +699,21 @@ class ClasicosScreen(QDialog):
         hill_ca = QWidget()
         hillLayout = QGridLayout()
         txt_plano = QLabel()
-        txt_plano.setText("Ingrese el texto plano: ")
+        txt_plano.setText("Plain Text: ")
         input_plano = QPlainTextEdit()
         input_plano.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         txt_cifrado = QLabel()
-        txt_cifrado.setText("Ingrese el correspondiente texto crifrado: ")
+        txt_cifrado.setText("Cipher Text: ")
         input_cifrado = QPlainTextEdit()
         input_cifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
-        boton_getkey = QPushButton(text="Obtener Clave")
-        boton_getkey.setStyleSheet(
-            """
-            QPushButton {
-                border:1px solid #161616;
-                border-radius:5%;
-                padding:5px;
-                background:#145795;
-                color:white;
-            }
-            QPushButton:hover {
-                background-color:#0B3862;
-                font: bold;
-            }
-            """)
+        boton_getkey = QPushButton(text="Get Key")
+        boton_getkey.setStyleSheet(submit_style)
         boton_getkey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         boton_getkey.setFixedWidth(170)
         boton_getkey.clicked.connect(lambda: criptanalisisHill(input_plano, input_cifrado))
 
-        boton_limpiar_caHill = QPushButton(text="Limpiar Campos")
-        boton_limpiar_caHill.setStyleSheet(
-            """
-        QPushButton {
-            border:1px solid #161616;
-            border-radius:5%;
-            padding:5px;
-            background:#0B3862;
-            color:white;
-        }
-        QPushButton:hover {
-            background-color:#145795;
-            font: bold;
-        }
-        """)
+        boton_limpiar_caHill = QPushButton(text="Clean")
+        boton_limpiar_caHill.setStyleSheet(aux_style)
         boton_limpiar_caHill.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         boton_limpiar_caHill.setFixedWidth(170)
 
@@ -760,12 +726,12 @@ class ClasicosScreen(QDialog):
 
         boton_limpiar_caHill.clicked.connect(limpiarCampos_caHill)
         txt_m = QLabel()
-        txt_m.setText("Valor de m: ")
+        txt_m.setText("m value: ")
         output_m = QPlainTextEdit()
         output_m.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_m.setReadOnly(True)
         txt_keyfound = QLabel()
-        txt_keyfound.setText("Clave: ")
+        txt_keyfound.setText("Key: ")
         output_keyfound = QPlainTextEdit()
         output_keyfound.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_keyfound.setReadOnly(True)
@@ -799,28 +765,15 @@ class ClasicosScreen(QDialog):
         sustitucion_ca = QWidget()
         sus_layout = QHBoxLayout()
         crifrado_sus_label = QLabel()
-        crifrado_sus_label.setText("Texto Cifrado:")
+        crifrado_sus_label.setText("Cipher Text:")
         crifrado_sus = QPlainTextEdit()
         crifrado_sus.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         boton_analizarsus = QPushButton(text="Analizar")
         boton_analizarsus.setFixedWidth(150)
         boton_analizarsus.clicked.connect(lambda: criptanalisisSus(crifrado_sus))
-        boton_analizarsus.setStyleSheet(
-            """
-            QPushButton {
-                border:1px solid #161616;
-                border-radius:5%;
-                padding:5px;
-                background:#145795;
-                color:white;
-            }
-            QPushButton:hover {
-                background-color:#0B3862;
-                font: bold;
-            }
-            """)
+        boton_analizarsus.setStyleSheet(submit_style)
         decript_label = QLabel()
-        decript_label.setText("Texto Plano con \nsustituciones introducidas:")
+        decript_label.setText("Plain Text\n with selected substitutions:")
         output_descifrado_sus = QPlainTextEdit()
         output_descifrado_sus.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_descifrado_sus.setReadOnly(True)
@@ -956,26 +909,13 @@ class ClasicosScreen(QDialog):
         sus_y.addItems(alphabet_list)
         sus_z = QComboBox()
         sus_z.addItems(alphabet_list)
-        boton_applysus = QPushButton(text="Aplicar")
+        boton_applysus = QPushButton(text="Apply")
         boton_applysus.clicked.connect(lambda: aplicar(lista_caracteres, crifrado_sus, output_descifrado_sus))
         boton_applysus.setFixedWidth(100)
-        boton_applysus.setStyleSheet(
-            """
-            QPushButton {
-                border:1px solid #161616;
-                border-radius:5%;
-                padding:5px;
-                background:#145795;
-                color:white;
-            }
-            QPushButton:hover {
-                background-color:#0B3862;
-                font: bold;
-            }
-            """)
+        boton_applysus.setStyleSheet(submit_style)
 
         monfreq_eng = QLabel()
-        monfreq_eng.setText('Probabilidad de ocurrencia \nde letras en Inglés')
+        monfreq_eng.setText('Probability of occurrence \nde english letters')
         monoeng_table = QTableWidget()
         font = QtGui.QFont()
         font.setFamily("Segoe UI Semilight")
@@ -984,7 +924,7 @@ class ClasicosScreen(QDialog):
         monoeng_table.setColumnCount(4)
         monoeng_table.setRowCount(13)
         monoeng_table.resizeRowsToContents()
-        monoeng_table.setHorizontalHeaderLabels(["Letra", "Proba.", "Letra", "Proba."])
+        monoeng_table.setHorizontalHeaderLabels(["Letter", "Proba.", "Letter", "Proba."])
         monoeng_table.resizeRowsToContents()
         monoeng_table.resizeColumnsToContents()
         monoeng_table.verticalHeader().hide()
@@ -1025,7 +965,7 @@ class ClasicosScreen(QDialog):
                    'OR', 'TI', 'IS', 'ET', 'IT', 'AR', 'TE', 'SE', 'HI', 'OF']
 
         difreq_eng = QLabel()
-        difreq_eng.setText('Digramas más frecuentes \nen Inglés')
+        difreq_eng.setText('Most frequent digrams \nin English')
         digeng_table = QTableWidget()
         digeng_table.setFont(font)
         digeng_table.setColumnCount(5)
@@ -1064,7 +1004,7 @@ class ClasicosScreen(QDialog):
         trigrams = ['THE', 'ING', 'AND', 'HER', 'ERE', 'ENT', 'THA', 'NTH', 'WAS', 'ETH', 'FOR', 'DTH']
 
         trifreq_eng = QLabel()
-        trifreq_eng.setText('Trigramas más frecuentes \nen Inglés')
+        trifreq_eng.setText('Most frequent trigrams \nin English')
         trigeng_table = QTableWidget()
         trigeng_table.setFont(font)
         trigeng_table.setColumnCount(5)
@@ -1101,13 +1041,13 @@ class ClasicosScreen(QDialog):
             trigeng_table.setItem(row, 4, cell)
 
         monfreq_txt = QLabel()
-        monfreq_txt.setText('Frecuencia de Monogramas en \nel texto')
+        monfreq_txt.setText('Monograms frequency \nin the text')
         monofreq_out = QTableWidget()
         difreq_txt = QLabel()
-        difreq_txt.setText('Frecuencia de Digramas en el \ntexto')
+        difreq_txt.setText('Digrams frequency \nin the text')
         difreq_out = QTableWidget()
         trifreq_txt = QLabel()
-        trifreq_txt.setText('Frecuencia de Trigramas en el \ntexto')
+        trifreq_txt.setText('Trigrams frequency \nin the text')
         trifreq_out = QTableWidget()
 
         sus1_ly = QVBoxLayout()
@@ -1132,7 +1072,7 @@ class ClasicosScreen(QDialog):
         sus2_ly.addWidget(trifreq_out, 5, 1)
 
         d_k = QLabel()
-        d_k.setText('d(y)')
+        d_k.setText('dₖ(y)')
         d_k.setAlignment(QtCore.Qt.AlignCenter)
         y = QLabel()
         y.setText('y')
@@ -1231,29 +1171,16 @@ class ClasicosScreen(QDialog):
         vigenere_ca = QWidget()
         vigenereLayout = QGridLayout()
         input_label = QLabel()
-        input_label.setText("Texto Cifrado")
+        input_label.setText("Cipher Text")
         input_criptoanalysisVigenere = QPlainTextEdit()
         input_criptoanalysisVigenere.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         decript_label = QLabel()
-        decript_label.setText("Llave / Texto Claro")
+        decript_label.setText("Key / Plain text")
         output_descifradoVigenere = QPlainTextEdit()
         output_descifradoVigenere.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
         output_descifradoVigenere.setReadOnly(True)
         boton_submitVigenere = QPushButton(text="Submit")
-        boton_submitVigenere.setStyleSheet(
-            """
-            QPushButton {
-                border:1px solid #161616;
-                border-radius:5%;
-                padding:5px;
-                background:#145795;
-                color:white;
-            }
-            QPushButton:hover {
-                background-color:#0B3862;
-                font: bold;
-            }
-            """)
+        boton_submitVigenere.setStyleSheet(submit_style)
         vigenereLayout.addWidget(input_label, 0, 1)
         vigenereLayout.addWidget(decript_label, 0, 2)
         vigenereLayout.addWidget(input_criptoanalysisVigenere, 1, 1)
@@ -1299,7 +1226,7 @@ class ClasicosScreen(QDialog):
             monofreq_out.setColumnCount(2)
             monofreq_out.setRowCount(26)
             monofreq_out.resizeRowsToContents()
-            monofreq_out.setHorizontalHeaderLabels(["Letra", "Freq."])
+            monofreq_out.setHorizontalHeaderLabels(["Letter", "Freq."])
             monofreq_out.resizeRowsToContents()
             monofreq_out.resizeColumnsToContents()
             monofreq_out.verticalHeader().hide()
@@ -1382,6 +1309,261 @@ class ClasicosScreen(QDialog):
             txt_out.setPlainText(str(cypher.permutado))
             #criptanalisisSus(txt_out)
 
+
+class BlockScreen(QDialog):
+
+    def __init__(self):
+        super(BlockScreen, self).__init__()
+        def BlockButton(input, output_ref, encriptar, cryptosys, op_mode):
+            # Set sizes
+            keySize = 32
+            ivSize = 16
+            image_file_name = input.file
+            img_name = image_file_name.split('.')[0]
+            img_extension = image_file_name.split('.')[1]
+            if image_file_name != "":
+                img = cv2.imread(image_file_name)
+                row, column, depth = img.shape
+                # Check for minimum width
+                print("Flag0")
+                minWidth = (16*2) // depth + 1
+                if column < minWidth:
+                    print('The minimum width of the image must be {} pixels, so that IV and padding can be stored in a single additional row!'.format(minWidth))
+                    sys.exit()
+                # Convert original image data to bytes
+                imageBytes = img.tobytes()
+                paddedSize = 0
+                print("Flag1")
+                #img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                if encriptar == True:
+                    key = os.urandom(keySize)
+                    iv = os.urandom(ivSize)
+                    ciphertext = ''
+                    if cryptosys == 'DES':
+                        cipher = DES.DES(key)
+                    elif cryptosys == 'AES':
+                        cipher = AES.AES(key)
+                    if op_mode == 'ECB':
+                        ciphertext, paddedSize = opm.encrypt_ecb(cipher, imageBytes, iv, key)
+                    elif op_mode == 'CBC':
+                        ciphertext, paddedSize = opm.encrypt_cbc(cipher, imageBytes, iv, key)
+                    elif op_mode == 'OFB':
+                        ciphertext = opm.encrypt_ofb(cipher, imageBytes, iv)
+                    elif op_mode == 'CTR':
+                        ciphertext = opm.encrypt_ctr(cipher, imageBytes, iv)
+                    void = column * depth - ivSize - paddedSize
+                    ivCiphertextVoid = iv + ciphertext + bytes(void)
+                    imageEncrypted = np.frombuffer(ivCiphertextVoid, dtype = img.dtype).reshape(row + 1, column, depth)
+                    cv2.imwrite(img_name+"_encrypted.bmp", imageEncrypted)
+                    QMessageBox.information(None, 'Success',
+                                            'You can find the encrypted image here: ' + img_name+"_encrypted.bmp",
+                                            QMessageBox.Ok)
+                    output_ref.open_image(img_name+"_encrypted.bmp")
+                elif encriptar == False:
+                    print("Flag2")
+                    rowOrig = row - 1
+                    iv = imageBytes[:ivSize]
+                    imageOrigBytesSize = rowOrig * column * depth
+                    paddedSize = (imageOrigBytesSize // 16 + 1) * 16 - imageOrigBytesSize
+                    encrypted = imageBytes[ivSize : ivSize + imageOrigBytesSize + paddedSize]
+                    print("Flag3")
+                    if cryptosys == 'DES':
+                        cipher = DES.DES(key)
+                    elif cryptosys == 'AES':
+                        print("Flag4")
+                        cipher = AES.AES(key)
+                        print("Flag5")
+                    if op_mode == 'ECB':
+                        decryptedImageBytes = opm.decrypt_ecb(cipher, encrypted, iv)
+                    elif op_mode == 'CBC':
+                        print("Flag6")
+                        decryptedImageBytes = opm.decrypt_cbc(cipher, encrypted, iv)
+                        print("Flag7")
+                    elif op_mode == 'OFB':
+                        decryptedImageBytes = opm.decrypt_ofb(cipher, encrypted, iv)
+                    elif op_mode == 'CTR':
+                        decryptedImageBytes = opm.decrypt_ctr(cipher, encrypted, iv)
+                    # Convert bytes to decrypted image data
+                    decryptedImage = np.frombuffer(decryptedImageBytes, img.dtype).reshape(rowOrig, column, depth)
+                    cv2.imwrite(img_name+"_decrypted.bmp", decryptedImage)
+                    QMessageBox.information(None, 'Success',
+                                            'You can find the decrypted image here: ' + img_name+"_decrypted.bmp",
+                                            QMessageBox.Ok)
+                    output_ref.open_image(img_name+"_decrypted.bmp")
+            else:
+                QMessageBox.critical(None, 'There is no image',
+                                     'Drop an image to process or one with a valid format (.jpg, .png)',
+                                     QMessageBox.Ok)
+
+        gridBlock = QGridLayout()
+        gridBlock.setGeometry(QtCore.QRect(10, 10, 1030, 600))
+        h1box = QHBoxLayout()
+        h2box = QVBoxLayout()
+        txt_block = QLabel()
+        txt_block.setText("Select Block Cipher: ")
+        label_style = '''
+        QLabel {
+            font-size: 18px;
+            font-family: Segoe UI;
+        }'''
+        txt_block.setStyleSheet(label_style)
+        txt_block1 = QLabel()
+        txt_block1.setText("Select Operation Mode: ")
+        txt_block1.setStyleSheet(label_style)
+        cripto_img = ["DES", "S-DES", "3-DES","AES"]
+        op_modes = ["ECB","CBC","OFB","CTR"]
+        combo_img = QComboBox()
+        combo_modes = QComboBox()
+        comboblock_style = """
+        QComboBox {
+            padding:5px;
+            border:1px solid #161616;
+            border-radius:3%;
+            font-size: 18px;
+        }
+        QComboBox::drop-down
+        {
+            border: 0px;
+            width:20px;
+        }
+        QComboBox::down-arrow {
+            image: url(resources/dropdown.png);
+            width: 12px;
+            height: 12px;
+        }
+        QComboBox::drop-down:hover {
+           background-color:#E3E3E3;
+        }
+        """
+        combo_img.setStyleSheet(comboblock_style)
+        combo_modes.setStyleSheet(comboblock_style)
+        combo_img.addItems(cripto_img)
+        combo_modes.addItems(op_modes)
+        h1box.addWidget(txt_block)
+        h1box.addWidget(combo_img)
+        h2box.addWidget(txt_block1)
+        h2box.addWidget(combo_modes)
+        img_c = Template()
+        img_d = Template()
+        txt_img = QLabel()
+        txt_img.setText("Image to encrypt / decrypted: ")
+        txt_img.setAlignment(Qt.AlignCenter)
+        txt_img.setStyleSheet('''
+        QLabel {
+            font-size: 22px;
+            font-family: Segoe UI;
+        }''')
+        txt_img_d = QLabel()
+        txt_img_d.setText("Image to decrypt / encrypted: ")
+        txt_img_d.setAlignment(Qt.AlignCenter)
+        txt_img_d.setStyleSheet('''
+        QLabel {
+            font-size: 22px;
+            font-family: Segoe UI;
+        }''')
+        boton_cifrar_hill = crearBoton(cifrado=True)
+        boton_descifrar_hill = crearBoton(cifrado=False)
+        boton_cifrar_hill.clicked.connect(lambda: BlockButton(img_c, img_d, True, str(combo_img.currentText()), str(combo_modes.currentText())))
+        boton_descifrar_hill.clicked.connect(lambda: BlockButton(img_d, img_c, False, str(combo_img.currentText()), str(combo_modes.currentText())))
+        boton_limpiar = QPushButton(text="Clean")
+        aux_style = """
+        QPushButton {
+            border-radius:5%;
+            padding:5px;
+            background:#9E6CFA;
+            color:white;
+        }
+        QPushButton:hover {
+            background-color:#4DB4FA;
+            font: bold;
+            }
+            """
+        boton_limpiar.setStyleSheet(aux_style)
+        boton_limpiar.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_limpiar.setFixedWidth(150)
+        boton_limpiar.clicked.connect(lambda: clean(gridBlock, img_c, img_d, boton_cifrar_hill, boton_descifrar_hill))
+
+        def clean(layout, img_c, img_d, boton_cifrar_hill, boton_descifrar_hill):
+            txt_key.setText('')
+            sip.delete(boton_cifrar_hill)
+            sip.delete(boton_descifrar_hill)
+            sip.delete(img_c)
+            sip.delete(img_d)
+            img_c = Template()
+            img_d = Template()
+            boton_cifrar_hill = crearBoton(cifrado=True)
+            boton_descifrar_hill = crearBoton(cifrado=False)
+            boton_cifrar_hill.clicked.connect(lambda: BlockButton(img_c, img_d, True, str(combo_img.currentText()), str(combo_modes.currentText())))
+            boton_descifrar_hill.clicked.connect(lambda: BlockButton(img_c, img_d, False, str(combo_img.currentText()), str(combo_modes.currentText())))
+            gridBlock.addWidget(img_c, 1, 0, 4, 1)
+            gridBlock.addWidget(img_d, 1, 2, 4, 1)
+            gridBlock.addWidget(boton_cifrar_hill, 2, 1)
+            gridBlock.addWidget(boton_descifrar_hill, 3, 1)
+
+        boton_browsekey = QPushButton(text="Key")
+        boton_browsekey.setStyleSheet(aux_style)
+        boton_browsekey.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_browsekey.setFixedWidth(150)
+        boton_browsekey.clicked.connect(lambda: browse_key())
+
+
+        def browse_key():
+            fname = QFileDialog.getOpenFileName(None, 'Select key file', QtCore.QDir.rootPath())
+            txt_key.setText(fname[0])
+
+
+        txt_key = QLabel()
+        txt_key.setStyleSheet('''
+        QLabel {
+            border:1px solid #161616;
+        }''')
+        boton_key = QPushButton(text="Clave")
+        boton_key.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_key.setFixedWidth(150)
+        boton_key.clicked.connect(lambda: info())
+        def info():
+            QMessageBox.information(None, 'Info',
+                                    'La clave para encriptar (Involutory Key) se genera automáticamente y se almacena en un archivo .png',
+                                    QMessageBox.Ok)
+
+        txt_key2 = QLabel()
+        txt_key2.setText('*Nota: Siempre limpiar campos antes de \n encriptar/desencriptar')
+
+        self.back_button = QPushButton("Back to Main Menu")
+        back_buttonStyle = """
+        QPushButton {
+            width: 170px;
+            border-radius: 5%;
+            padding: 5px;
+            background: #8DD3F6;
+            font: 12pt;
+            font: semi-bold;
+        }
+        QPushButton:hover {
+            background-color: #4DB4FA;
+            color: white;
+        }
+        """
+        self.back_button.setStyleSheet(back_buttonStyle)
+        self.back_button.clicked.connect(lambda: widget.setCurrentIndex(0))
+
+        gridBlock.addLayout(h1box, 0, 0)
+        gridBlock.addLayout(h2box, 0, 1)
+        gridBlock.addWidget(combo_img, 0, 1)
+        gridBlock.addWidget(txt_img, 1, 0)
+        gridBlock.addWidget(txt_img_d, 1, 2)
+        gridBlock.addWidget(img_c, 2, 0, 6, 1)
+        gridBlock.addWidget(img_d, 2, 2, 6, 1)
+        gridBlock.addWidget(boton_cifrar_hill, 3, 1)
+        gridBlock.addWidget(boton_descifrar_hill, 4, 1)
+        gridBlock.addWidget(boton_limpiar, 6, 1)
+        gridBlock.addWidget(boton_key, 9, 0)
+        gridBlock.addWidget(txt_key2, 10, 0)
+        gridBlock.addWidget(boton_browsekey, 9, 2)
+        gridBlock.addWidget(txt_key, 10, 2)
+        gridBlock.addWidget(self.back_button, 11, 1)
+        self.setLayout(gridBlock)
+
 """
 Interfaz & Layout
 """
@@ -1389,12 +1571,17 @@ Interfaz & Layout
 app = QApplication(sys.argv)
 app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
 welcome = WelcomeScreen()
+clasicos = ClasicosScreen()
+bloque = BlockScreen()
 widget = QtWidgets.QStackedWidget()
 widget.addWidget(welcome)
+widget.addWidget(clasicos)
+widget.addWidget(bloque)
 widget.setFixedHeight(770)
 widget.setFixedWidth(1200)
 widget.setStyleSheet("background: #ffffff;")
 widget.setWindowTitle("Criptool")
+widget.setCurrentIndex(0)
 widget.show()
 font = QtGui.QFont()
 font.setFamily("Segoe UI SemiLight")

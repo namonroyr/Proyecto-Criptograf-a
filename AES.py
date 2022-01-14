@@ -200,7 +200,7 @@ class AES:
         # Group key words in 4x4 byte matrices.
         return [key_columns[4*i : 4*(i+1)] for i in range(len(key_columns) // 4)]
 
-    def encrypt_block(self, plaintext):
+    def encrypt(self, plaintext):
         """
         Encrypts a single block of 16 byte long plaintext.
         """
@@ -222,7 +222,7 @@ class AES:
 
         return matrix2bytes(plain_state)
 
-    def decrypt_block(self, ciphertext):
+    def decrypt(self, ciphertext):
         """
         Decrypts a single block of 16 byte long ciphertext.
         """
