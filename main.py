@@ -1325,7 +1325,6 @@ class BlockScreen(QDialog):
                 img = cv2.imread(image_file_name)
                 row, column, depth = img.shape
                 # Check for minimum width
-                print("Flag0")
                 minWidth = (16*2) // depth + 1
                 if column < minWidth:
                     print('The minimum width of the image must be {} pixels, so that IV and padding can be stored in a single additional row!'.format(minWidth))
@@ -1333,7 +1332,6 @@ class BlockScreen(QDialog):
                 # Convert original image data to bytes
                 imageBytes = img.tobytes()
                 paddedSize = 0
-                print("Flag1")
                 #img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 if encriptar == True:
                     key = os.urandom(keySize)
@@ -1354,35 +1352,37 @@ class BlockScreen(QDialog):
                     void = column * depth - ivSize - paddedSize
                     ivCiphertextVoid = iv + ciphertext + bytes(void)
                     imageEncrypted = np.frombuffer(ivCiphertextVoid, dtype = img.dtype).reshape(row + 1, column, depth)
-                    cv2.imwrite(img_name+"_encrypted.bmp", imageEncrypted)
+                    cv2.imwrite(img_name+"_encrypted"+cryptosys+op_mode+".bmp", imageEncrypted)
+                    key_file = open(img_name+"_key"+cryptosys+op_mode+".txt","wb")
+                    key_file.write(key)
+                    key_file.close()
                     QMessageBox.information(None, 'Success',
-                                            'You can find the encrypted image here: ' + img_name+"_encrypted.bmp",
+                                            'You can find the encrypted image here: ' + img_name+"_encrypted"+cryptosys+op_mode+".bmp"+"\n"+
+                                            'And the key used in the file: '+img_name+"_key"+cryptosys+op_mode+".txt",
                                             QMessageBox.Ok)
-                    output_ref.open_image(img_name+"_encrypted.bmp")
+                    output_ref.open_image(img_name+"_encrypted"+cryptosys+op_mode+".bmp")
                 elif encriptar == False:
-                    print("Flag2")
+                    key_file = open(txt_key.text(),"rb")
+                    key = key_file.read()
+                    key_file.close()
                     rowOrig = row - 1
                     iv = imageBytes[:ivSize]
                     imageOrigBytesSize = rowOrig * column * depth
                     paddedSize = (imageOrigBytesSize // 16 + 1) * 16 - imageOrigBytesSize
                     encrypted = imageBytes[ivSize : ivSize + imageOrigBytesSize + paddedSize]
-                    print("Flag3")
+                    encrypted_nopad = imageBytes[ivSize : ivSize + imageOrigBytesSize]
                     if cryptosys == 'DES':
                         cipher = DES.DES(key)
                     elif cryptosys == 'AES':
-                        print("Flag4")
                         cipher = AES.AES(key)
-                        print("Flag5")
                     if op_mode == 'ECB':
                         decryptedImageBytes = opm.decrypt_ecb(cipher, encrypted, iv)
                     elif op_mode == 'CBC':
-                        print("Flag6")
                         decryptedImageBytes = opm.decrypt_cbc(cipher, encrypted, iv)
-                        print("Flag7")
                     elif op_mode == 'OFB':
-                        decryptedImageBytes = opm.decrypt_ofb(cipher, encrypted, iv)
+                        decryptedImageBytes = opm.decrypt_ofb(cipher, encrypted_nopad, iv)
                     elif op_mode == 'CTR':
-                        decryptedImageBytes = opm.decrypt_ctr(cipher, encrypted, iv)
+                        decryptedImageBytes = opm.decrypt_ctr(cipher, encrypted_nopad, iv)
                     # Convert bytes to decrypted image data
                     decryptedImage = np.frombuffer(decryptedImageBytes, img.dtype).reshape(rowOrig, column, depth)
                     cv2.imwrite(img_name+"_decrypted.bmp", decryptedImage)
@@ -1485,20 +1485,20 @@ class BlockScreen(QDialog):
 
         def clean(layout, img_c, img_d, boton_cifrar_hill, boton_descifrar_hill):
             txt_key.setText('')
-            sip.delete(boton_cifrar_hill)
-            sip.delete(boton_descifrar_hill)
-            sip.delete(img_c)
-            sip.delete(img_d)
+            boton_cifrar_hill.setParent(None)
+            boton_descifrar_hill.setParent(None)
+            img_c.setParent(None)
+            img_d.setParent(None)
             img_c = Template()
             img_d = Template()
             boton_cifrar_hill = crearBoton(cifrado=True)
             boton_descifrar_hill = crearBoton(cifrado=False)
             boton_cifrar_hill.clicked.connect(lambda: BlockButton(img_c, img_d, True, str(combo_img.currentText()), str(combo_modes.currentText())))
-            boton_descifrar_hill.clicked.connect(lambda: BlockButton(img_c, img_d, False, str(combo_img.currentText()), str(combo_modes.currentText())))
-            gridBlock.addWidget(img_c, 1, 0, 4, 1)
-            gridBlock.addWidget(img_d, 1, 2, 4, 1)
-            gridBlock.addWidget(boton_cifrar_hill, 2, 1)
-            gridBlock.addWidget(boton_descifrar_hill, 3, 1)
+            boton_descifrar_hill.clicked.connect(lambda: BlockButton(img_d, img_c, False, str(combo_img.currentText()), str(combo_modes.currentText())))
+            gridBlock.addWidget(img_c, 2, 0, 6, 1)
+            gridBlock.addWidget(img_d, 2, 2, 6, 1)
+            gridBlock.addWidget(boton_cifrar_hill, 3, 1)
+            gridBlock.addWidget(boton_descifrar_hill, 4, 1)
 
         boton_browsekey = QPushButton(text="Key")
         boton_browsekey.setStyleSheet(aux_style)

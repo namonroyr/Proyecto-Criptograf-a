@@ -91,15 +91,12 @@ def decrypt_cbc(cipher, ciphertext, iv):
     Decrypts `ciphertext` using CBC mode and PKCS#7 padding, with the given
     initialization vector (iv).
     """
-    print("Flag6.1")
     assert len(iv) == 16
     blocks = []
     previous = iv
-    print("Flag6.2")
     for ciphertext_block in split_blocks(ciphertext):
         blocks.append(xor_bytes(previous, cipher.decrypt(ciphertext_block)))
         previous = ciphertext_block
-    print("Flag6.3")
     return unpad(b''.join(blocks))
 
 def encrypt_ofb(cipher, plaintext, iv):
@@ -123,6 +120,7 @@ def decrypt_ofb(cipher, ciphertext, iv):
     """
     Decrypts `ciphertext` using OFB mode initialization vector (iv).
     """
+    print("Flag7")
     assert len(iv) == 16
     blocks = []
     previous = iv
