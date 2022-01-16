@@ -86,9 +86,6 @@ Note: This code was not written for high-end systems needing a fast
 
 import sys
 
-# _pythonMajorVersion is used to handle Python2 and Python3 differences.
-_pythonMajorVersion = sys.version_info[0]
-
 # Modes of crypting / cyphering
 ECB =	0
 CBC =	1
@@ -96,12 +93,6 @@ CBC =	1
 # Modes of padding
 PAD_NORMAL = 1
 PAD_PKCS5 = 2
-
-# PAD_PKCS5: is a method that will unambiguously remove all padding
-#            characters after decryption, when originally encrypted with
-#            this padding mode.
-# For a good description of the PKCS5 padding technique, see:
-# http://www.faqs.org/rfcs/rfc1423.html
 
 # The base class shared by des and triple des.
 class _baseDes(object):
@@ -171,6 +162,7 @@ class _baseDes(object):
 
 	def _padData(self, data, pad, padmode):
 		# Pad data depending on the mode
+		pad_len = 0
 		if padmode is None:
 			# Get the default padding mode.
 			padmode = self.getPadMode()
@@ -191,12 +183,9 @@ class _baseDes(object):
 
 		elif padmode == PAD_PKCS5:
 			pad_len = 8 - (len(data) % self.block_size)
-			if _pythonMajorVersion < 3:
-				data += pad_len * chr(pad_len)
-			else:
-				data += bytes([pad_len] * pad_len)
+			data += bytes([pad_len] * pad_len)
 
-		return data
+		return data, pad_len
 
 	def _unpadData(self, data, pad, padmode):
 		# Unpad data depending on the mode.
@@ -217,10 +206,7 @@ class _baseDes(object):
 				       data[-self.block_size:].rstrip(pad)
 
 		elif padmode == PAD_PKCS5:
-			if _pythonMajorVersion < 3:
-				pad_len = ord(data[-1])
-			else:
-				pad_len = data[-1]
+			pad_len = data[-1]
 			data = data[:-pad_len]
 
 		return data
@@ -228,17 +214,13 @@ class _baseDes(object):
 	def _guardAgainstUnicode(self, data):
 		# Only accept byte strings or ascii unicode values, otherwise
 		# there is no way to correctly decode the data into bytes.
-		if _pythonMajorVersion < 3:
-			if isinstance(data, unicode):
-				raise ValueError("pyDes can only work with bytes, not Unicode strings.")
-		else:
-			if isinstance(data, str):
-				# Only accept ascii unicode values.
-				try:
-					return data.encode('ascii')
-				except UnicodeEncodeError:
-					pass
-				raise ValueError("pyDes can only work with encoded strings, not Unicode.")
+		if isinstance(data, str):
+			# Only accept ascii unicode values.
+			try:
+				return data.encode('ascii')
+			except UnicodeEncodeError:
+				pass
+			raise ValueError("pyDes can only work with encoded strings, not Unicode.")
 		return data
 
 #############################################################################
@@ -400,12 +382,10 @@ class des(_baseDes):
 			raise ValueError("Invalid DES key size. Key must be exactly 8 bytes long.")
 		_baseDes.__init__(self, mode, IV, pad, padmode)
 		self.key_size = 8
-
 		self.L = []
 		self.R = []
 		self.Kn = [ [0] * 48 ] * 16	# 16 48-bit keys (K1 - K16)
 		self.final = []
-
 		self.setKey(key)
 
 	def setKey(self, key):
@@ -415,10 +395,6 @@ class des(_baseDes):
 
 	def __String_to_BitList(self, data):
 		"""Turn the string data, into a list of bits (1, 0)'s"""
-		if _pythonMajorVersion < 3:
-			# Turn the strings into integers. Python 3 uses a bytes
-			# class, which already has this behaviour.
-			data = [ord(c) for c in data]
 		l = len(data) * 8
 		result = [0] * l
 		pos = 0
@@ -446,10 +422,7 @@ class des(_baseDes):
 				c = 0
 			pos += 1
 
-		if _pythonMajorVersion < 3:
-			return ''.join([ chr(c) for c in result ])
-		else:
-			return bytes(result)
+		return bytes(result)
 
 	def __permutate(self, table, block):
 		"""Permutate this block with the specified table"""
@@ -563,7 +536,7 @@ class des(_baseDes):
 	# Data to be encrypted/decrypted
 	def crypt(self, data, crypt_type):
 		"""Crypt the data in blocks, running it through des_crypt()"""
-
+		print("Flag4.3.1")
 		# Error check the data
 		if not data:
 			return ''
@@ -602,15 +575,17 @@ class des(_baseDes):
 
 			# Xor with IV if using CBC mode
 			if self.getMode() == CBC:
+				print("Flag4.3.2")
 				if crypt_type == des.ENCRYPT:
+					print("Flag4.3.3")
 					block = list(map(lambda x, y: x ^ y, block, iv))
 					#j = 0
 					#while j < len(block):
 					#	block[j] = block[j] ^ iv[j]
 					#	j += 1
-
+				print("Flag4.3.4")
 				processed_block = self.__des_crypt(block, crypt_type)
-
+				print("Flag4.3.5")
 				if crypt_type == des.DECRYPT:
 					processed_block = list(map(lambda x, y: x ^ y, processed_block, iv))
 					#j = 0
@@ -620,13 +595,14 @@ class des(_baseDes):
 					iv = block
 				else:
 					iv = processed_block
-			else:
+			elif self.getMode() == ECB:
 				processed_block = self.__des_crypt(block, crypt_type)
 
 
 			# Add the resulting crypted block to our list
 			#d = self.__BitList_to_String(processed_block)
 			#result.append(d)
+			print("Flag4.3.6")
 			result.append(self.__BitList_to_String(processed_block))
 			#dict[data[i:i+8]] = d
 			i += 8
@@ -634,10 +610,8 @@ class des(_baseDes):
 		# print "Lines: %d, cached: %d" % (lines, cached)
 
 		# Return the full crypted string
-		if _pythonMajorVersion < 3:
-			return ''.join(result)
-		else:
-			return bytes.fromhex('').join(result)
+		print("Flag4.3.7")
+		return bytes.fromhex('').join(result)
 
 	def encrypt(self, data, pad=None, padmode=None):
 		"""encrypt(data, [pad], [padmode]) -> bytes
@@ -652,11 +626,13 @@ class des(_baseDes):
 		the padmode is set to PAD_PKCS5, as bytes will then added to
 		ensure the be padded data is a multiple of 8 bytes.
 		"""
+		print("Flag4.1")
+		pad_len = 0
 		data = self._guardAgainstUnicode(data)
 		if pad is not None:
 			pad = self._guardAgainstUnicode(pad)
-		data = self._padData(data, pad, padmode)
-		return self.crypt(data, des.ENCRYPT)
+		data, pad_len = self._padData(data, pad, padmode)
+		return self.crypt(data, des.ENCRYPT), pad_len
 
 	def decrypt(self, data, pad=None, padmode=None):
 		"""decrypt(data, [pad], [padmode]) -> bytes
@@ -795,10 +771,8 @@ class triple_des(_baseDes):
 				self.__key3.setIV(block)
 				result.append(block)
 				i += 8
-			if _pythonMajorVersion < 3:
-				return ''.join(result)
-			else:
-				return bytes.fromhex('').join(result)
+
+			return bytes.fromhex('').join(result)
 		else:
 			data = self.__key1.crypt(data, ENCRYPT)
 			data = self.__key2.crypt(data, DECRYPT)
@@ -841,10 +815,7 @@ class triple_des(_baseDes):
 				self.__key3.setIV(iv)
 				result.append(block)
 				i += 8
-			if _pythonMajorVersion < 3:
-				data = ''.join(result)
-			else:
-				data = bytes.fromhex('').join(result)
+			data = bytes.fromhex('').join(result)
 		else:
 			data = self.__key3.crypt(data, DECRYPT)
 			data = self.__key2.crypt(data, ENCRYPT)

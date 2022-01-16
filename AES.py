@@ -243,3 +243,119 @@ class AES:
         add_round_key(cipher_state, self._key_matrices[0])
 
         return matrix2bytes(cipher_state)
+
+    def encrypt_ecb(self, plaintext, iv, key):
+        """
+        Encrypts `plaintext` using ECB mode, with the given
+        initialization vector (iv).
+        """
+        assert len(iv) == 16
+        plaintext_padded = pad(plaintext)
+        paddedSize = len(plaintext_padded) - len(plaintext)
+        blocks = []
+        previous = iv
+        for plaintext_block in split_blocks(plaintext_padded):
+            block = self.encrypt(plaintext_block)
+            blocks.append(block)
+            previous = block
+        return b''.join(blocks), paddedSize
+
+    def decrypt_ecb(self, ciphertext, iv):
+        assert len(iv) == 16
+        blocks = []
+        previous = iv
+        for ciphertext_block in split_blocks(ciphertext):
+            blocks.append(self.decrypt(ciphertext_block))
+            previous = ciphertext_block
+        return unpad(b''.join(blocks))
+
+    def encrypt_cbc(self, plaintext, iv, key):
+        """
+        Encrypts `plaintext` using CBC mode and PKCS#7 padding, with the given
+        initialization vector (iv).
+        """
+        assert len(iv) == 16
+        plaintext_padded = pad(plaintext)
+        paddedSize = len(plaintext_padded) - len(plaintext)
+        blocks = []
+        previous = iv
+        for plaintext_block in split_blocks(plaintext_padded):
+            block = self.encrypt(xor_bytes(plaintext_block, previous))
+            blocks.append(block)
+            previous = block
+        return b''.join(blocks), paddedSize
+
+    def decrypt_cbc(self, ciphertext, iv):
+        """
+        Decrypts `ciphertext` using CBC mode and PKCS#7 padding, with the given
+        initialization vector (iv).
+        """
+        assert len(iv) == 16
+        blocks = []
+        previous = iv
+        for ciphertext_block in split_blocks(ciphertext):
+            blocks.append(xor_bytes(previous, self.decrypt(ciphertext_block)))
+            previous = ciphertext_block
+        return unpad(b''.join(blocks))
+
+    def encrypt_ofb(self, plaintext, iv):
+        """
+        Encrypts `plaintext` using OFB mode initialization vector (iv).
+        """
+        assert len(iv) == 16
+
+        blocks = []
+        previous = iv
+        for plaintext_block in split_blocks(plaintext, require_padding=False):
+                # OFB mode encrypt: plaintext_block XOR encrypt(previous)
+                block = self.encrypt(previous)
+                ciphertext_block = xor_bytes(plaintext_block, block)
+                blocks.append(ciphertext_block)
+                previous = block
+
+        return b''.join(blocks)
+
+    def decrypt_ofb(self, ciphertext, iv):
+        """
+        Decrypts `ciphertext` using OFB mode initialization vector (iv).
+        """
+        assert len(iv) == 16
+        blocks = []
+        previous = iv
+        for ciphertext_block in split_blocks(ciphertext, require_padding=False):
+            block = self.encrypt(previous)
+            plaintext_block = xor_bytes(ciphertext_block, block)
+            blocks.append(plaintext_block)
+            previous = block
+
+        return b''.join(blocks)
+
+    def encrypt_ctr(self, plaintext, iv):
+        """
+        Encrypts `plaintext` using CTR mode with the given nounce/IV.
+        """
+        assert len(iv) == 16
+        blocks = []
+        nonce = iv
+        for plaintext_block in split_blocks(plaintext, require_padding=False):
+            # CTR mode encrypt: plaintext_block XOR encrypt(nonce)
+            block = xor_bytes(plaintext_block, self.encrypt(nonce))
+            blocks.append(block)
+            nonce = inc_bytes(nonce)
+
+        return b''.join(blocks)
+
+    def decrypt_ctr(self, ciphertext, iv):
+        """
+        Decrypts `ciphertext` using CTR mode with the given nounce/IV.
+        """
+        assert len(iv) == 16
+        blocks = []
+        nonce = iv
+        for ciphertext_block in split_blocks(ciphertext, require_padding=False):
+            # CTR mode decrypt: ciphertext XOR encrypt(nonce)
+            block = xor_bytes(ciphertext_block, self.encrypt(nonce))
+            blocks.append(block)
+            nonce = inc_bytes(nonce)
+
+        return b''.join(blocks)
