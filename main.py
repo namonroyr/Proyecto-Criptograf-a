@@ -10,6 +10,8 @@ import vigenere as vg
 import substitution as sb
 import classic_crypto as cc
 import string
+import image_sdes
+import sdes_new
 from pyDes import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, QFile, QDate, QTime, QSize, QTimer, QRect, QRegExp, QTranslator,
@@ -26,6 +28,8 @@ from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegio
 # Modes of crypting / cyphering
 ECB =	0
 CBC =	1
+OFB =   2
+CTR =   3
 
 # Modes of padding
 PAD_NORMAL = 1
@@ -1338,31 +1342,42 @@ class BlockScreen(QDialog):
                 # Convert original image data to bytes
                 imageBytes = img.tobytes()
                 paddedSize = 0
-                #img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 if encriptar == True:
                     ciphertext = ''
-                    print("Flag1")
                     if cryptosys == 'DES':
                         keySize = 8
                         ivSize = 8
                         key = os.urandom(keySize)
                         iv = os.urandom(ivSize)
                         if op_mode == 'ECB':
-                            print("Flag3")
                             cipher = DES.des(key, mode=ECB, IV=iv, pad=None, padmode=PAD_PKCS5)
-                            print("Flag4")
                             ciphertext, paddedSize = cipher.encrypt(imageBytes)
-                            print("Flag5")
                         elif op_mode == 'CBC':
-                            print("Flag3")
                             cipher = DES.des(key, mode=CBC, IV=iv, pad=None, padmode = PAD_PKCS5)
-                            print("Flag4")
                             ciphertext, paddedSize = cipher.encrypt(imageBytes)
-                            print("Flag5")
                         elif op_mode == 'OFB':
-                            ciphertext = cipher.encrypt_ofb(imageBytes, iv)
+                            cipher = DES.des(key, mode=OFB, IV=iv, pad=None, padmode= PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
                         elif op_mode == 'CTR':
-                            ciphertext = cipher.encrypt_ctr(imageBytes, iv)
+                            cipher = DES.des(key, mode=CTR, IV=iv, pad=None, padmode= PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+                    elif cryptosys == '3-DES':
+                        keySize = 24
+                        ivSize = 8
+                        key = os.urandom(keySize)
+                        iv = os.urandom(ivSize)
+                        if op_mode == 'ECB':
+                            cipher = DES.triple_des(key, mode=ECB, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+                        elif op_mode == 'CBC':
+                            cipher = DES.triple_des(key, mode=CBC, IV=iv, pad=None, padmode = PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+                        elif op_mode == 'OFB':
+                            cipher = DES.triple_des(key, mode=OFB, IV=iv, pad=None, padmode= PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+                        elif op_mode == 'CTR':
+                            cipher = DES.triple_des(key, mode=CTR, IV=iv, pad=None, padmode= PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
                     elif cryptosys == 'AES':
                         keySize = 32
                         ivSize = 16
@@ -1372,33 +1387,51 @@ class BlockScreen(QDialog):
                         if op_mode == 'ECB':
                             ciphertext, paddedSize = cipher.encrypt_ecb(imageBytes, iv, key)
                         elif op_mode == 'CBC':
-                            print("Flag3")
                             ciphertext, paddedSize = cipher.encrypt_cbc(imageBytes, iv, key)
-                            print("Flag4")
                         elif op_mode == 'OFB':
                             ciphertext = cipher.encrypt_ofb(imageBytes, iv)
                         elif op_mode == 'CTR':
                             ciphertext = cipher.encrypt_ctr(imageBytes, iv)
-                    void = column * depth - ivSize - paddedSize
-                    ivCiphertextVoid = iv + ciphertext + bytes(void)
-                    imageEncrypted = np.frombuffer(ivCiphertextVoid, dtype = img.dtype).reshape(row + 1, column, depth)
-                    cv2.imwrite(img_name+"_encrypted"+cryptosys+op_mode+".bmp", imageEncrypted)
+                    elif cryptosys == 'S-DES':
+                        keySize = 8
+                        ivSize = 8
+                        key = os.urandom(keySize)
+                        iv = os.urandom(ivSize)
+                        if op_mode == 'ECB':
+                            imageEncrypted = image_sdes.encrypt_image(img)
+                            img_cryp_name = img_name+"_encrypted"+cryptosys+op_mode+".png"
+                        elif op_mode == 'CBC':
+                            cipher = DES.des(key, mode=CBC, IV=iv, pad=None, padmode = PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+                        elif op_mode == 'OFB':
+                            cipher = DES.des(key, mode=OFB, IV=iv, pad=None, padmode= PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+                        elif op_mode == 'CTR':
+                            cipher = DES.des(key, mode=CTR, IV=iv, pad=None, padmode= PAD_PKCS5)
+                            ciphertext, paddedSize = cipher.encrypt(imageBytes)
+
+                        #cv2.imwrite(img_cryp_name, encrypted_img)
+                    if cryptosys != 'S-DES' or  op_mode != 'ECB':
+                        void = column * depth - ivSize - paddedSize
+                        ivCiphertextVoid = iv + ciphertext + bytes(void)
+                        imageEncrypted = np.frombuffer(ivCiphertextVoid, dtype = img.dtype).reshape(row + 1, column, depth)
+                        img_cryp_name = img_name+"_encrypted"+cryptosys+op_mode+".bmp"
+
+                    cv2.imwrite(img_cryp_name, imageEncrypted)
                     key_file = open(img_name+"_key"+cryptosys+op_mode+".txt","wb")
                     key_file.write(key)
                     key_file.close()
                     QMessageBox.information(None, 'Success',
-                                            'You can find the encrypted image here: ' + img_name+"_encrypted"+cryptosys+op_mode+".bmp"+"\n"+
+                                            'You can find the encrypted image here: ' + img_cryp_name +"\n"+
                                             'And the key used in the file: '+img_name+"_key"+cryptosys+op_mode+".txt",
                                             QMessageBox.Ok)
-                    output_ref.open_image(img_name+"_encrypted"+cryptosys+op_mode+".bmp")
+                    output_ref.open_image(img_cryp_name)
                 elif encriptar == False:
-                    print("Flag1")
                     key_file = open(txt_key.text(),"rb")
                     key = key_file.read()
                     key_file.close()
                     rowOrig = row - 1
                     imageOrigBytesSize = rowOrig * column * depth
-                    print("Flag2")
                     if cryptosys == 'DES':
                         keySize = 8
                         ivSize = 8
@@ -1413,11 +1446,30 @@ class BlockScreen(QDialog):
                             cipher = DES.des(key, mode=CBC, IV=iv, pad=None, padmode=PAD_PKCS5)
                             decryptedImageBytes = cipher.decrypt(encrypted)
                         elif op_mode == 'OFB':
-                            cipher = DES.des(key, mode=ECB, IV=iv, pad=None, padmode=PAD_PKCS5)
-                            decryptedImageBytes = cipher.decrypt(encrypted_nopad, iv)
+                            cipher = DES.des(key, mode=OFB, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
                         elif op_mode == 'CTR':
-                            cipher = DES.des(key, mode=ECB, IV=iv, pad=None, padmode=PAD_PKCS5)
-                            decryptedImageBytes = cipher.decrypt_ctr(encrypted_nopad, iv)
+                            cipher = DES.des(key, mode=CTR, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                    elif cryptosys == '3-DES':
+                        keySize = 24
+                        ivSize = 8
+                        iv = imageBytes[:ivSize]
+                        paddedSize = (imageOrigBytesSize // 8 + 1) * 8 - imageOrigBytesSize
+                        encrypted = imageBytes[ivSize : ivSize + imageOrigBytesSize + paddedSize]
+                        encrypted_nopad = imageBytes[ivSize : ivSize + imageOrigBytesSize]
+                        if op_mode == 'ECB':
+                            cipher = DES.triple_des(key, mode=ECB, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                        elif op_mode == 'CBC':
+                            cipher = DES.triple_des(key, mode=CBC, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                        elif op_mode == 'OFB':
+                            cipher = DES.triple_des(key, mode=OFB, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                        elif op_mode == 'CTR':
+                            cipher = DES.triple_des(key, mode=CTR, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
                     elif cryptosys == 'AES':
                         keySize = 32
                         ivSize = 16
@@ -1431,17 +1483,38 @@ class BlockScreen(QDialog):
                         elif op_mode == 'CBC':
                             decryptedImageBytes = cipher.decrypt_cbc(encrypted, iv)
                         elif op_mode == 'OFB':
-                            decryptedImageBytes = cipher.decrypt_ofb(encrypted_nopad, iv)
+                            decryptedImageBytes = cipher.decrypt_ofb(encrypted, iv)
                         elif op_mode == 'CTR':
-                            decryptedImageBytes = cipher.decrypt_ctr(encrypted_nopad, iv)
+                            decryptedImageBytes = cipher.decrypt_ctr(encrypted, iv)
+                    elif cryptosys == 'S-DES':
+                        keySize = 8
+                        ivSize = 8
+                        iv = imageBytes[:ivSize]
+                        paddedSize = (imageOrigBytesSize // 8 + 1) * 8 - imageOrigBytesSize
+                        encrypted = imageBytes[ivSize : ivSize + imageOrigBytesSize + paddedSize]
+                        encrypted_nopad = imageBytes[ivSize : ivSize + imageOrigBytesSize]
+                        if op_mode == 'ECB':
+                            decryptedImage = image_sdes.decrypt_image(img)
+                            img_cryp_name = img_name+"_decrypted.png"
+                        elif op_mode == 'CBC':
+                            cipher = DES.des(key, mode=CBC, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                        elif op_mode == 'OFB':
+                            cipher = DES.des(key, mode=OFB, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                        elif op_mode == 'CTR':
+                            cipher = DES.des(key, mode=CTR, IV=iv, pad=None, padmode=PAD_PKCS5)
+                            decryptedImageBytes = cipher.decrypt(encrypted)
+                    if cryptosys != 'S-DES' or  op_mode != 'ECB':
                     # Convert bytes to decrypted image data
-                    decryptedImage = np.frombuffer(decryptedImageBytes, img.dtype).reshape(rowOrig, column, depth)
-                    print("Flag8")
-                    cv2.imwrite(img_name+"_decrypted.bmp", decryptedImage)
+                    #decryptedImage = ciphertext
+                        decryptedImage = np.frombuffer(decryptedImageBytes, img.dtype).reshape(rowOrig, column, depth)
+                        img_cryp_name = img_name+"_decrypted.bmp"
+                    cv2.imwrite(img_cryp_name, decryptedImage)
                     QMessageBox.information(None, 'Success',
-                                            'You can find the decrypted image here: ' + img_name+"_decrypted.bmp",
+                                            'You can find the decrypted image here: ' + img_cryp_name,
                                             QMessageBox.Ok)
-                    output_ref.open_image(img_name+"_decrypted.bmp")
+                    output_ref.open_image(img_cryp_name)
             else:
                 QMessageBox.critical(None, 'There is no image',
                                      'Drop an image to process or one with a valid format (.jpg, .png)',
@@ -1449,7 +1522,7 @@ class BlockScreen(QDialog):
 
         gridBlock = QGridLayout()
         gridBlock.setGeometry(QtCore.QRect(10, 10, 1030, 600))
-        h1box = QHBoxLayout()
+        h1box = QVBoxLayout()
         h2box = QVBoxLayout()
         txt_block = QLabel()
         txt_block.setText("Select Block Cipher: ")
