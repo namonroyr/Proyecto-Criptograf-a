@@ -12,18 +12,26 @@ import classic_crypto as cc
 import string
 import image_sdes
 import sdes_new
-from pyDes import *
+import itertools
+from pyqtgraph import PlotWidget, plot
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+import matplotlib.pyplot as plt
+import pyqtgraph as pg
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (Qt, QFile, QDate, QTime, QSize, QTimer, QRect, QRegExp, QTranslator,
                           QLocale, QLibraryInfo, QSize)
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QLabel, QDialog, QTableWidget, QMenu,
-                             QTableWidgetItem, QAbstractItemView, QLineEdit, QPushButton, QTabWidget,
+                             QTableWidgetItem, QAbstractItemView, QLineEdit, QTabWidget,
                              QActionGroup, QAction, QMessageBox, QFrame, QStyle, QGridLayout,
                              QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QGroupBox, QStackedLayout,
                              QDateEdit, QComboBox, QPushButton, QFileDialog, QPlainTextEdit, QLineEdit,
-                             QTextEdit)
+                             QTextEdit, QSpinBox)
 from PyQt5.QtGui import (QFont, QIcon, QPalette, QBrush, QColor, QPixmap, QRegion, QClipboard,
                          QRegExpValidator, QImage, QCursor)
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 # Modes of crypting / cyphering
 ECB =	0
@@ -34,6 +42,11 @@ CTR =   3
 # Modes of padding
 PAD_NORMAL = 1
 PAD_PKCS5 = 2
+
+abc = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7, "I": 8, "J": 9, "K": 10,
+           "L": 11, "M": 12, "N": 13, "O": 14, "P": 15, "Q": 16, "R": 17, "S": 18, "T": 19, "U": 20,
+           "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25}
+inv_abc = {value: key for key, value in abc.items()}
 
 class PhotoLabel(QLabel):
     def __init__(self, *args, **kwargs):
@@ -148,7 +161,7 @@ class WelcomeScreen(QDialog):
         self.gamma_button.setStyleSheet(buttonStyle)
         self.clasicos_button.clicked.connect(self.gotoclasicos)
         self.bloque_button.clicked.connect(self.gotobloque)
-        #self.gamma_button.clicked.connect(self.gotogamma)
+        self.gamma_button.clicked.connect(self.gotogamma)
         self.hbox1.addWidget(self.image)
         self.hbox2.addWidget(self.clasicos_button)
         self.hbox2.addWidget(self.bloque_button)
@@ -163,6 +176,9 @@ class WelcomeScreen(QDialog):
 
     def gotobloque(self):
         widget.setCurrentIndex(2)
+
+    def gotogamma(self):
+        widget.setCurrentIndex(3)
 
 class ClasicosScreen(QDialog):
 
@@ -1689,6 +1705,342 @@ class BlockScreen(QDialog):
         gridBlock.addWidget(self.back_button, 11, 1)
         self.setLayout(gridBlock)
 
+class GammaScreen(QDialog):
+    def __init__(self):
+        super(GammaScreen, self).__init__()
+        vbigbigbox = QVBoxLayout()
+        hbigbox = QHBoxLayout()
+        v1box = QVBoxLayout()
+        v2box = QVBoxLayout()
+        v3box = QVBoxLayout()
+        perm_list = []
+        global permutation_done
+        permutation_done = False
+        current_path = set()
+        def create_alphabet_graph(permutation, numbers=None):
+            #numbers = [3,0,2,7,9,6,1,5,4,8]
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
+            alphabet_plot = pg.plot()
+            scatter = pg.ScatterPlotItem(size=3)
+            x_points = np.arange(10)
+            y_points = np.arange(20)
+            pos_tuple = [element for element in itertools.product(x_points, y_points)]
+            pos = [list(element) for element in itertools.product(x_points, y_points)]
+            alpha = list(string.ascii_lowercase)
+            spots = [{'pos': pos[i]}
+                     for i in range(len(pos))]
+            scatter.addPoints(spots)
+            for i in pos_tuple:
+                label_value = pg.TextItem(text=str(i), color='#797A7B')
+                label_value.setPos(QtCore.QPointF(i[0],i[1]+0.5))
+                alphabet_plot.addItem(label_value)
+            j = 0
+            if not permutation:
+                for i in range(20):
+                    for j in range(10):
+                        label_value = pg.TextItem(text=alpha[(i+j)%26], color='#30BCF4')
+                        label_value.setPos(QtCore.QPointF(j,i))
+                        alphabet_plot.addItem(label_value)
+                i+=1
+            else:
+                for i in range(20):
+                    for j in range(10):
+                        a = alpha[(i+numbers[j])%26]
+                        label_value = pg.TextItem(text=a, color='#30BCF4')
+                        label_value.setPos(QtCore.QPointF(j,i))
+                        alphabet_plot.addItem(label_value)
+                        perm_list.append([abc[a.upper()],(j,i)])
+                i+=1
+            print(perm_list)
+            alphabet_plot.addItem(scatter)
+            #alphabet_plot.addItem(label_value)
+            alphabet_plot.getPlotItem().hideAxis('bottom')
+            alphabet_plot.getPlotItem().hideAxis('left')
+            graphpoints_layout.addWidget(alphabet_plot)
+
+        def gamma_encrypt(pathh):
+            #if permutation_done:
+            print('path', pathh)
+            for i in range(len(perm_list)):
+                n = alpha(perm_list[i][1][0],perm_list[i][1][1], pathh)
+                perm_list[i][0] = perm_list[i][0]+n
+            print(perm_list)
+            """
+            else:
+                QMessageBox.critical(None, 'Permutation',
+                                     'Please set a permutation before Encrypting',
+                                     QMessageBox.Ok)
+            """
+        def permutate_letters(numbers):
+            permutation_done = True
+            num = [int(i) for i in numbers]
+            graphpoints_layout.itemAt(0).widget().setParent(None)
+            create_alphabet_graph(True, num)
+
+        def tipo1(x,y,n):
+            paths = set()
+            curr = (x,y)
+            for i in range(n+1):
+                next = (curr[0] + 1 , curr[1] + i)
+                segment = (curr, next)
+                curr = next
+                paths.add(segment)
+            return paths
+
+        def tipo2(x,y,n):
+            type1 = tipo1(x,y,n)
+            paths = set()
+            for segment in type1:
+                last = segment[1]
+                altura = last[1]
+                temp = tipo1(*last, n)
+                paths = paths.union(temp)
+            return paths
+
+        def tipo3(x,y,n):
+            type2 = tipo2(x,y,n)
+            paths = set()
+            for segment in type2:
+                last =  segment[1]
+                pendiente = segment[1][1]-segment[0][1]
+                temp = tipo1(*last,pendiente)
+                paths = paths.union(temp)
+            return paths
+
+        def paths(x,y,n):
+            total = set()
+            return ((total.union(tipo1(x,y,n))).union(tipo2(x,y,n))).union(tipo3(x,y,n))
+
+        def alpha(x,y,path):
+            count = 0
+            for segment in path:
+                if (x,y) == segment[1]:
+                    count += 1
+            return count
+
+        def create_graphtype1(x,y):
+            n=15
+            print(x)
+            print(y)
+            caminos = paths(x,y,n)
+            current_path = caminos
+            figure = plt.figure(figsize=(15,10))
+            canvas = FigureCanvas(figure)
+            toolbar = NavigationToolbar(canvas, self)
+            plt.axis('equal')
+            ax = plt.gca()
+            ax.set_xlim([x, x+10])
+            ax.set_ylim([y, y+20])
+            for segment in caminos:
+                p0 = segment[0]
+                p1 = segment[1]
+                xs = [p0[0],p1[0]]
+                ys = [p0[1],p1[1]]
+                plt.plot(xs, ys, color='c', linestyle="-",marker='o',
+                            linewidth=1, markersize=2)
+            #plt.show()
+            graph1_layout.addWidget(toolbar)
+            graph1_layout.addWidget(canvas)
+            return caminos
+        #--------v1 box-----------
+        #Initial Point
+        aux_style = """
+        QPushButton {
+            border-radius:5%;
+            padding:5px;
+            background:#9E6CFA;
+            color:white;
+        }
+        QPushButton:hover {
+            background-color:#4DB4FA;
+            font: bold;
+            }
+            """
+        groupBox_ip = QGroupBox('Initial Point')
+        groupBoxLayout_out = QVBoxLayout()
+        groupBoxLayout_ip = QHBoxLayout()
+        groupBoxLayout_refresh = QHBoxLayout()
+        txt_x = QLabel('X = ')
+        txt_y = QLabel('Y = ')
+        spin_x = QSpinBox(value=0, maximum=20, minimum=-20, singleStep=1)
+        spin_y = QSpinBox(value=0, maximum=50, minimum=-50, singleStep=1)
+        groupBoxLayout_ip.addWidget(txt_x)
+        groupBoxLayout_ip.addWidget(spin_x)
+        groupBoxLayout_ip.addWidget(txt_y)
+        groupBoxLayout_ip.addWidget(spin_y)
+        groupBoxLayout_ip.setAlignment(QtCore.Qt.AlignCenter)
+        boton_draw = QPushButton(text="Refresh Graph")
+        boton_draw.setStyleSheet(aux_style)
+        boton_draw.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_draw.setFixedWidth(150)
+        groupBoxLayout_refresh.addWidget(boton_draw)
+        groupBoxLayout_out.addLayout(groupBoxLayout_ip)
+        groupBoxLayout_out.addLayout(groupBoxLayout_refresh)
+        groupBoxLayout_refresh.setAlignment(QtCore.Qt.AlignCenter)
+        groupBox_ip.setLayout(groupBoxLayout_out)
+        v1box.addWidget(groupBox_ip, 2)
+        #Coordinates
+        """
+        groupBox_coor = QGroupBox('Coordinates')
+        groupBoxLayout_coor = QGridLayout()
+        txt_up = QLabel('Up')
+        txt_left = QLabel('Left')
+        txt_right = QLabel('Right')
+        txt_down = QLabel('Down')
+        spin_up = QSpinBox(value=0, maximum=50, minimum=-50, singleStep=1)
+        spin_left = QSpinBox(value=0, maximum=20, minimum=-20, singleStep=1)
+        spin_right = QSpinBox(value=0, maximum=20, minimum=-20, singleStep=1)
+        spin_down = QSpinBox(value=0, maximum=50, minimum=-50, singleStep=1)
+        groupBoxLayout_coor.addWidget(txt_up,0,2)
+        groupBoxLayout_coor.addWidget(spin_up,1,2)
+        groupBoxLayout_coor.addWidget(txt_left,2,0)
+        groupBoxLayout_coor.addWidget(spin_left,2,1)
+        groupBoxLayout_coor.addWidget(spin_right,2,3)
+        groupBoxLayout_coor.addWidget(txt_right,2,4)
+        groupBoxLayout_coor.addWidget(spin_down,3,2)
+        groupBoxLayout_coor.addWidget(txt_down,4,2)
+        groupBox_coor.setLayout(groupBoxLayout_coor)
+        v1box.addWidget(groupBox_coor)
+        """
+        #Permutation
+
+        groupBox_per = QGroupBox('Permutation')
+        groupBoxLayout_per = QVBoxLayout()
+        groupBoxLayout_per_but = QHBoxLayout()
+        edit_permu = QPlainTextEdit()
+        randperm_boton = QPushButton(text="Random Permutation")
+        setperm_boton = QPushButton(text="Set Permutation")
+        boton_style1 = """
+        QPushButton {
+            border-radius:5%;
+            padding:5px;
+            background:#52F6E0;
+            font: 9pt;
+            font: semi-bold;
+        }
+        QPushButton:hover {
+            background-color: #13A5EE;
+            color:white;
+            font: bold;
+            }
+        """
+        randperm_boton.setStyleSheet(boton_style1)
+        randperm_boton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        randperm_boton.setFixedWidth(130)
+        setperm_boton.setStyleSheet(boton_style1)
+        setperm_boton.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        setperm_boton.setFixedWidth(130)
+
+        #groupBoxLayout_per.addWidget(randperm_boton)
+        groupBoxLayout_per_but.addWidget(setperm_boton)
+        groupBoxLayout_per_but.setAlignment(Qt.AlignCenter)
+        groupBoxLayout_per.addWidget(edit_permu)
+        groupBoxLayout_per.addLayout(groupBoxLayout_per_but)
+        groupBox_per.setLayout(groupBoxLayout_per)
+        v1box.addWidget(groupBox_per, 3)
+        #Graph type
+        groupBox_graphtype = QGroupBox('Graph Type')
+        groupBoxLayout_graphtype = QHBoxLayout()
+        combo_graph = QComboBox()
+        combo_graph.setStyleSheet(
+            """
+            QComboBox {
+                padding:5px;
+                border:1px solid #161616;
+                border-radius:3%;
+                background-color:#8DD3F6;
+                }
+            QComboBox::drop-down {
+                border:0px;
+                width:20px;
+                }
+            QComboBox::down-arrow {
+                image: url(resources/dropdown.png);
+                width: 12px;
+                height: 12px;
+                }
+            QComboBox::drop-down:hover {
+                background-color: #D7DDE1;
+                }
+            """)
+        combo_graph.addItems(['Sum of three squares','Sum of four cubes, two of them equal'])
+        #combo_graph.currentTextChanged.connect(escogerCriptosistema)
+        combo_graph.setCurrentIndex(0)
+        combo_graph.setFixedWidth(180)
+        groupBoxLayout_graphtype.addWidget(combo_graph)
+        groupBox_graphtype.setLayout(groupBoxLayout_graphtype)
+        v1box.addWidget(groupBox_graphtype, 2)
+        # Encrypt/Decrypt
+        groupBox_enc = QGroupBox()
+        groupBoxLayout_enc = QVBoxLayout()
+        boton_cipher = crearBoton(cifrado=True)
+        boton_decipher = crearBoton(cifrado=False)
+        boton_cipher.clicked.connect(gamma_encrypt)
+        boton_limpiar_gamma = QPushButton(text="Clean")
+        boton_limpiar_gamma.setStyleSheet(aux_style)
+        boton_limpiar_gamma.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_limpiar_gamma.setFixedWidth(150)
+        groupBoxLayout_enc.addWidget(boton_cipher)
+        groupBoxLayout_enc.addWidget(boton_decipher)
+        groupBoxLayout_enc.addWidget(boton_limpiar_gamma)
+        groupBoxLayout_enc.setAlignment(Qt.AlignCenter)
+        groupBox_enc.setLayout(groupBoxLayout_enc)
+        v1box.addWidget(groupBox_enc, 3)
+        #--------v2 box-----------
+        groupBox_graph = QGroupBox('Graph')
+        graph1_layout = QVBoxLayout()
+        #create_graphtype1(spin_x.value(), spin_y.value())
+        pathh = create_graphtype1(spin_x.value(), spin_y.value())
+        print('pathhhhh',pathh)
+        boton_cipher.clicked.connect(lambda: gamma_encrypt(pathh))
+        groupBox_graph.setLayout(graph1_layout)
+        v2box.addWidget(groupBox_graph, 7)
+        groupBox_plaintext = QGroupBox('Plain Text')
+        plain_layout = QVBoxLayout()
+        plaintext = QPlainTextEdit()
+        plain_layout.addWidget(plaintext)
+        groupBox_plaintext.setLayout(plain_layout)
+        v2box.addWidget(groupBox_plaintext, 3)
+        #--------v3 box-----------
+        groupBox_graphpoints = QGroupBox('Letters')
+        graphpoints_layout = QVBoxLayout()
+        create_alphabet_graph(False)
+        groupBox_graphpoints.setLayout(graphpoints_layout)
+        v3box.addWidget(groupBox_graphpoints)
+        groupBox_ciphertext = QGroupBox('Cipher Text')
+        cipher_layout = QVBoxLayout()
+        ciphertext = QPlainTextEdit()
+        cipher_layout.addWidget(ciphertext)
+        groupBox_ciphertext.setLayout(cipher_layout)
+        v3box.addWidget(groupBox_ciphertext)
+        #-------------------------------
+        hbigbox.addLayout(v1box, 2)
+        hbigbox.addLayout(v2box, 4)
+        hbigbox.addLayout(v3box, 4)
+        vbigbigbox.addLayout(hbigbox)
+        back_button = QPushButton("Back to Main Menu")
+        back_buttonStyle = """
+        QPushButton {
+            width: 170px;
+            border-radius: 5%;
+            padding: 5px;
+            background: #8DD3F6;
+            font: 12pt;
+            font: semi-bold;
+        }
+        QPushButton:hover {
+            background-color: #4DB4FA;
+            color: white;
+        }
+        """
+        back_button.setStyleSheet(back_buttonStyle)
+        back_button.clicked.connect(lambda: widget.setCurrentIndex(0))
+        back_button.setFixedWidth(150)
+        setperm_boton.clicked.connect(lambda: permutate_letters(edit_permu.toPlainText().split('-')))
+        #back_button.setAlignment(Qt.AlignRight)
+        vbigbigbox.addWidget(back_button)
+        self.setLayout(vbigbigbox)
 """
 Interfaz & Layout
 """
@@ -1698,10 +2050,12 @@ app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
 welcome = WelcomeScreen()
 clasicos = ClasicosScreen()
 bloque = BlockScreen()
+gamma = GammaScreen()
 widget = QtWidgets.QStackedWidget()
 widget.addWidget(welcome)
 widget.addWidget(clasicos)
 widget.addWidget(bloque)
+widget.addWidget(gamma)
 widget.setFixedHeight(770)
 widget.setFixedWidth(1200)
 widget.setStyleSheet("background: #ffffff;")
