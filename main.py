@@ -13,6 +13,7 @@ import string
 import image_sdes
 import sdes_new
 import itertools
+from itertools import cycle
 from pyqtgraph import PlotWidget, plot
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -272,12 +273,10 @@ class ClasicosScreen(QDialog):
         """
 
         def botonAfin(clave, input, output, encriptar):
-            print("Flag0")
             texto_cifrado = input.toPlainText().strip()
             criptosistema_afin = cc.CriptosistemaAfin(clave)
             if encriptar == True:
                 output.setPlainText(criptosistema_afin.encriptar(texto_cifrado))
-                print("Flag4")
             elif encriptar == False:
                 output.setPlainText(criptosistema_afin.desencriptar(texto_cifrado))
 
@@ -590,7 +589,6 @@ class ClasicosScreen(QDialog):
             texto = input_criptoanalysis.toPlainText().strip()
             res = list(vg.vigenereAttack(texto))
             if len(res) == 0:
-                print("entra1")
                 output_descifrado.setPlainText("No se encontró ninguna palabra clave.")
             else:
                 retorno = ''
@@ -624,8 +622,7 @@ class ClasicosScreen(QDialog):
                         continue
                     inverse_s = 26 - j
                     if (i, j) == (3, 5):
-                        print(inverse_m, inverse_s)
-                    output = output + "Para a = {} y b = {} el texto es:\n".format(i, j) + ''.join(
+                        output = output + "Para a = {} y b = {} el texto es:\n".format(i, j) + ''.join(
                         [string.ascii_uppercase[(inverse_m * (abc[k] + inverse_s)) % 26] for k in texto]) + '\n'
             output_descifrado.setPlainText(output)
 
@@ -1717,7 +1714,7 @@ class GammaScreen(QDialog):
         global permutation_done
         permutation_done = False
         current_path = set()
-        def create_alphabet_graph(permutation, numbers=None):
+        def create_alphabet_graph(permutation, cipher, numbers=None):
             #numbers = [3,0,2,7,9,6,1,5,4,8]
             pg.setConfigOption('background', 'w')
             pg.setConfigOption('foreground', 'k')
@@ -1735,48 +1732,71 @@ class GammaScreen(QDialog):
                 label_value = pg.TextItem(text=str(i), color='#797A7B')
                 label_value.setPos(QtCore.QPointF(i[0],i[1]+0.5))
                 alphabet_plot.addItem(label_value)
-            j = 0
-            if not permutation:
-                for i in range(20):
-                    for j in range(10):
-                        label_value = pg.TextItem(text=alpha[(i+j)%26], color='#30BCF4')
-                        label_value.setPos(QtCore.QPointF(j,i))
-                        alphabet_plot.addItem(label_value)
-                i+=1
-            else:
-                for i in range(20):
-                    for j in range(10):
-                        a = alpha[(i+numbers[j])%26]
+            if permutation:
+                for i in range(10):
+                    for j in range(20):
+                        a = alpha[(j+numbers[i])%26]
                         label_value = pg.TextItem(text=a, color='#30BCF4')
-                        label_value.setPos(QtCore.QPointF(j,i))
+                        label_value.setPos(QtCore.QPointF(i,j))
                         alphabet_plot.addItem(label_value)
-                        perm_list.append([abc[a.upper()],(j,i)])
-                i+=1
-            print(perm_list)
+                        perm_list.append([abc[a.upper()],(i,j)])
+            elif cipher:
+                c = 0
+                for i in range(10):
+                    for j in range(20):
+                        label_value = pg.TextItem(text=inv_abc[perm_list[c][0]].lower(), color='#30BCF4')
+                        label_value.setPos(QtCore.QPointF(i,j))
+                        alphabet_plot.addItem(label_value)
+                        c+=1
+            else:
+                for i in range(10):
+                    for j in range(20):
+                        label_value = pg.TextItem(text=alpha[(i+j)%26], color='#30BCF4')
+                        label_value.setPos(QtCore.QPointF(i,j))
+                        alphabet_plot.addItem(label_value)
+
             alphabet_plot.addItem(scatter)
             #alphabet_plot.addItem(label_value)
             alphabet_plot.getPlotItem().hideAxis('bottom')
             alphabet_plot.getPlotItem().hideAxis('left')
             graphpoints_layout.addWidget(alphabet_plot)
 
-        def gamma_encrypt(pathh):
+        def gamma_encrypt(x,y, text, numbers):
             #if permutation_done:
-            print('path', pathh)
+            pathh = get_currentpath(x, y)
+            num = [int(i) for i in numbers]
             for i in range(len(perm_list)):
                 n = alpha(perm_list[i][1][0],perm_list[i][1][1], pathh)
-                perm_list[i][0] = perm_list[i][0]+n
-            print(perm_list)
-            """
-            else:
-                QMessageBox.critical(None, 'Permutation',
-                                     'Please set a permutation before Encrypting',
-                                     QMessageBox.Ok)
-            """
+                perm_list[i][0] = (perm_list[i][0]+n)%26
+            pool = cycle(perm_list)
+            cypher = ''
+            for letter in text:
+                occu = next(ix[1] for ix in pool if ix[0] == abc[letter.upper()])
+                cypher+=(str(occu)+';')
+            ciphertext.setPlainText(cypher[:-1])
+            graphpoints_layout.itemAt(0).widget().setParent(None)
+            create_alphabet_graph(False, True, num)
+
+        def gamma_decrypt(x,y, text):
+            pathh = get_currentpath(x, y)
+            for i in range(len(perm_list)):
+                n = alpha(perm_list[i][1][0],perm_list[i][1][1], pathh)
+                perm_list[i][0] = (perm_list[i][0]+n)%26
+            pool = cycle(perm_list)
+            decipher = ''
+            for coor in text:
+                occu = next(inv_abc[ix[0]] for ix in pool if str(ix[1]) == coor)
+                #print(occu)
+                decipher+=occu
+            plaintext.setPlainText(decipher.lower())
+            graphpoints_layout.itemAt(0).widget().setParent(None)
+            create_alphabet_graph(False, True)
+
         def permutate_letters(numbers):
             permutation_done = True
             num = [int(i) for i in numbers]
             graphpoints_layout.itemAt(0).widget().setParent(None)
-            create_alphabet_graph(True, num)
+            create_alphabet_graph(True, False, num)
 
         def tipo1(x,y,n):
             paths = set()
@@ -1819,12 +1839,15 @@ class GammaScreen(QDialog):
                     count += 1
             return count
 
-        def create_graphtype1(x,y):
+        def create_graph(x, y):
             n=15
-            print(x)
-            print(y)
-            caminos = paths(x,y,n)
-            current_path = caminos
+            current = str(combo_graph.currentText())
+            if current == 'Sum of three squares':
+                caminos = paths(x,y,n)
+                c = 'c'
+            else:
+                caminos = graph2(x,y,n)
+                c = 'm'
             figure = plt.figure(figsize=(15,10))
             canvas = FigureCanvas(figure)
             toolbar = NavigationToolbar(canvas, self)
@@ -1837,12 +1860,55 @@ class GammaScreen(QDialog):
                 p1 = segment[1]
                 xs = [p0[0],p1[0]]
                 ys = [p0[1],p1[1]]
-                plt.plot(xs, ys, color='c', linestyle="-",marker='o',
+                plt.plot(xs, ys, color=c, linestyle="-",marker='o',
                             linewidth=1, markersize=2)
             #plt.show()
             graph1_layout.addWidget(toolbar)
             graph1_layout.addWidget(canvas)
             return caminos
+
+        def update_graph(x,y):
+            index = graph1_layout.count()
+            while(index >= 1):
+                myWidget = graph1_layout.itemAt(index-1).widget()
+                myWidget.setParent(None)
+                index -=1
+            create_graph(x,y)
+
+        def get_currentpath(x,y):
+            n=15
+            current = str(combo_graph.currentText())
+            if current == 'Sum of three squares':
+                caminos = paths(x,y,n)
+                c = 'c'
+            else:
+                caminos = graph2(x,y,n)
+                c = 'm'
+            return caminos
+
+        def graph2(x,y,n):
+            if n == 0:
+                return {((x,y),(x+1,y))}
+            else:
+                last = graph2(x,y,n-1)
+                borde = set([segmento for segmento in last if segmento[1][0] == n])
+                minimo = min([i[1][1] for i in borde])
+                temp = set()
+                for segmento in borde:
+                    head = segmento[0]
+                    tail = segmento[1]
+                    pendiente = tail[1] - head[1]
+                    if n%2 == 1 or tail[1] > minimo:
+                        temp.add((tail, (tail[0]+1,tail[1])))
+                    temp.add((tail, (tail[0]+1,tail[1]+pendiente+1)))
+            return last.union(temp)
+
+        def clean_gamma():
+            edit_permu.setPlainText('')
+            plaintext.setPlainText('')
+            ciphertext.setPlainText('')
+            graphpoints_layout.itemAt(0).widget().setParent(None)
+            create_alphabet_graph(False, False)
         #--------v1 box-----------
         #Initial Point
         aux_style = """
@@ -1880,29 +1946,6 @@ class GammaScreen(QDialog):
         groupBoxLayout_refresh.setAlignment(QtCore.Qt.AlignCenter)
         groupBox_ip.setLayout(groupBoxLayout_out)
         v1box.addWidget(groupBox_ip, 2)
-        #Coordinates
-        """
-        groupBox_coor = QGroupBox('Coordinates')
-        groupBoxLayout_coor = QGridLayout()
-        txt_up = QLabel('Up')
-        txt_left = QLabel('Left')
-        txt_right = QLabel('Right')
-        txt_down = QLabel('Down')
-        spin_up = QSpinBox(value=0, maximum=50, minimum=-50, singleStep=1)
-        spin_left = QSpinBox(value=0, maximum=20, minimum=-20, singleStep=1)
-        spin_right = QSpinBox(value=0, maximum=20, minimum=-20, singleStep=1)
-        spin_down = QSpinBox(value=0, maximum=50, minimum=-50, singleStep=1)
-        groupBoxLayout_coor.addWidget(txt_up,0,2)
-        groupBoxLayout_coor.addWidget(spin_up,1,2)
-        groupBoxLayout_coor.addWidget(txt_left,2,0)
-        groupBoxLayout_coor.addWidget(spin_left,2,1)
-        groupBoxLayout_coor.addWidget(spin_right,2,3)
-        groupBoxLayout_coor.addWidget(txt_right,2,4)
-        groupBoxLayout_coor.addWidget(spin_down,3,2)
-        groupBoxLayout_coor.addWidget(txt_down,4,2)
-        groupBox_coor.setLayout(groupBoxLayout_coor)
-        v1box.addWidget(groupBox_coor)
-        """
         #Permutation
 
         groupBox_per = QGroupBox('Permutation')
@@ -1976,11 +2019,11 @@ class GammaScreen(QDialog):
         groupBoxLayout_enc = QVBoxLayout()
         boton_cipher = crearBoton(cifrado=True)
         boton_decipher = crearBoton(cifrado=False)
-        boton_cipher.clicked.connect(gamma_encrypt)
         boton_limpiar_gamma = QPushButton(text="Clean")
         boton_limpiar_gamma.setStyleSheet(aux_style)
         boton_limpiar_gamma.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         boton_limpiar_gamma.setFixedWidth(150)
+        boton_limpiar_gamma.clicked.connect(clean_gamma)
         groupBoxLayout_enc.addWidget(boton_cipher)
         groupBoxLayout_enc.addWidget(boton_decipher)
         groupBoxLayout_enc.addWidget(boton_limpiar_gamma)
@@ -1990,10 +2033,9 @@ class GammaScreen(QDialog):
         #--------v2 box-----------
         groupBox_graph = QGroupBox('Graph')
         graph1_layout = QVBoxLayout()
-        #create_graphtype1(spin_x.value(), spin_y.value())
-        pathh = create_graphtype1(spin_x.value(), spin_y.value())
-        print('pathhhhh',pathh)
-        boton_cipher.clicked.connect(lambda: gamma_encrypt(pathh))
+        create_graph(spin_x.value(), spin_y.value())
+        combo_graph.currentTextChanged.connect(lambda: update_graph(spin_x.value(), spin_y.value()))
+        boton_draw.clicked.connect(lambda: update_graph(spin_x.value(), spin_y.value()))
         groupBox_graph.setLayout(graph1_layout)
         v2box.addWidget(groupBox_graph, 7)
         groupBox_plaintext = QGroupBox('Plain Text')
@@ -2005,7 +2047,7 @@ class GammaScreen(QDialog):
         #--------v3 box-----------
         groupBox_graphpoints = QGroupBox('Letters')
         graphpoints_layout = QVBoxLayout()
-        create_alphabet_graph(False)
+        create_alphabet_graph(False, False, edit_permu.toPlainText().split('-'))
         groupBox_graphpoints.setLayout(graphpoints_layout)
         v3box.addWidget(groupBox_graphpoints)
         groupBox_ciphertext = QGroupBox('Cipher Text')
@@ -2038,6 +2080,9 @@ class GammaScreen(QDialog):
         back_button.clicked.connect(lambda: widget.setCurrentIndex(0))
         back_button.setFixedWidth(150)
         setperm_boton.clicked.connect(lambda: permutate_letters(edit_permu.toPlainText().split('-')))
+        #pathh = get_currentpath(spin_x.value(), spin_y.value())
+        boton_cipher.clicked.connect(lambda: gamma_encrypt(spin_x.value(), spin_y.value(), list(plaintext.toPlainText().strip()), edit_permu.toPlainText().split('-')))
+        boton_decipher.clicked.connect(lambda: gamma_decrypt(spin_x.value(), spin_y.value(), list(ciphertext.toPlainText().split(';'))))
         #back_button.setAlignment(Qt.AlignRight)
         vbigbigbox.addWidget(back_button)
         self.setLayout(vbigbigbox)
