@@ -17,9 +17,9 @@
 3. Activate virtual enviroment 
    ```
    Linux:
-   source criptool/bin/activate
+   source cryptool/bin/activate
    Windows:
-   criptool\Scripts\activate
+   cryptool\Scripts\activate
    ```
 4. Install dependencies
 
