@@ -49,6 +49,11 @@ abc = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7, "I": 8, "
            "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25}
 inv_abc = {value: key for key, value in abc.items()}
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, 'MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 class PhotoLabel(QLabel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,7 +143,7 @@ class WelcomeScreen(QDialog):
         self.hbox2.setAlignment(Qt.AlignCenter)
         vbox.setAlignment(Qt.AlignCenter)
         self.image = QLabel()
-        self.image.setPixmap(QPixmap('resources/Cryptool_logo.png'))
+        self.image.setPixmap(QPixmap(resource_path('resources/Cryptool_logo.png')))
         buttonStyle = """
         QPushButton {
             width: 170px;
@@ -249,13 +254,13 @@ class ClasicosScreen(QDialog):
                 padding:5px;
                 border:1px solid #161616;
                 border-radius:3%;
+                background-color:#8DD3F6;
                 }
             QComboBox::drop-down {
                 border:0px;
                 width:20px;
                 }
             QComboBox::down-arrow {
-                image: url(resources/dropdown.png);
                 width: 12px;
                 height: 12px;
                 }
@@ -311,26 +316,26 @@ class ClasicosScreen(QDialog):
             if encriptar:
                 sus.permutar(clave)
                 if len(set(k for j,k in sus.key.items())) < 26:
-                    output.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+                    output.setPlainText("Invalid Permutation. Undefined keys are replaced by themselves. That said: make sure this map is injective")
                 else:
                     output.setPlainText(sus.permutado.upper())
             else:
                 sus.permutar({v: k for k, v in clave.items()})
                 if len(set(k for j,k in sus.key.items())) < 26:
-                    output.setPlainText("Permutación inválida. Las llaves no definidas son reemplazadas por ellas mismas. Dicho esto: asegúrese de que este mapa es inyectivo")
+                    output.setPlainText("Invalid Permutation. Undefined keys are replaced by themselves. That said: make sure this map is injective")
                 else:
                     output.setPlainText(sus.permutado.upper())
 
         self.txt_clave = QLabel()
-        self.txt_clave.setText("Ingrese los dos digitos de la clave afin separados por un espacio:")
+        self.txt_clave.setText("Enter the two key digits of affine cipher separated by a space: ")
         self.res_clave = QLineEdit()
         self.res_clave.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         # Texto a cifrar
-        self.txt_aCifrar = QLabel(text="Ingrese el texto a cifrar:")
+        self.txt_aCifrar = QLabel(text="Plain Text:")
         self.input_aCifrar = QPlainTextEdit()
         self.input_aCifrar.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         # Texto cifrado
-        self.txt_cifrado = QLabel(text="Texto cifrado:")
+        self.txt_cifrado = QLabel(text="Cipher Text:")
         self.output_cifrado = QPlainTextEdit()
         self.output_cifrado.setDisabled(True)
         self.output_cifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
@@ -340,11 +345,11 @@ class ClasicosScreen(QDialog):
         self.boton_cifrar.clicked.connect(lambda: botonAfin(self.res_clave.text().split(), self.input_aCifrar, self.output_cifrado, True))
 
         # Texto a descifrar
-        self.txt_aDescifrar = QLabel(text="Ingrese el texto a descifrar:")
+        self.txt_aDescifrar = QLabel(text="Cipher Text:")
         self.input_aDescifrar = QPlainTextEdit()
         self.input_aDescifrar.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;")
         # Texto descifrado
-        self.txt_descifrado = QLabel(text="Texto descifrado:")
+        self.txt_descifrado = QLabel(text="Plain Text:")
         self.output_descifrado = QPlainTextEdit()
         self.output_descifrado.setDisabled(True)
         self.output_descifrado.setStyleSheet("padding:5px;border:1px solid #161616;border-radius:3%;color:black;")
@@ -360,7 +365,7 @@ class ClasicosScreen(QDialog):
         def escogerCriptosistema():
             if str(menu.currentText()) == "Affine cipher":
                 # Clave afin
-                self.txt_clave.setText("Ingrese los dos digitos de la clave afin separados por un espacio:")
+                self.txt_clave.setText("Enter the two key digits of affine cipher separated by a space: ")
                 limpiarCampos()
                 self.boton_cifrar = crearBoton(cifrado=True)
                 self.boton_descifrar = crearBoton(cifrado=False)
@@ -372,7 +377,7 @@ class ClasicosScreen(QDialog):
 
             elif str(menu.currentText()) == "Shift cipher":
                 # Clave por desplazamiento
-                self.txt_clave.setText("Ingrese el dígito de la clave por Desplazamiento:")
+                self.txt_clave.setText("Enter the digit key for shift cipher:")
                 limpiarCampos()
                 self.boton_cifrar = crearBoton(cifrado=True)
                 self.boton_descifrar = crearBoton(cifrado=False)
@@ -383,7 +388,7 @@ class ClasicosScreen(QDialog):
                 gridcifrado.addWidget(self.boton_cifrar, 8, 0)
 
             elif str(menu.currentText()) == "Permutation cipher":
-                self.txt_clave.setText("Ingrese los digitos de la matriz de permutación separados por un espacio:")
+                self.txt_clave.setText("Enter the permutation digits of the matirx followed by space:")
                 limpiarCampos()
                 self.boton_cifrar = crearBoton(cifrado=True)
                 self.boton_descifrar = crearBoton(cifrado=False)
@@ -396,7 +401,7 @@ class ClasicosScreen(QDialog):
                 gridcifrado.addWidget(self.boton_descifrar, 8, 1)
                 gridcifrado.addWidget(self.boton_cifrar, 8, 0)
             elif str(menu.currentText()) == "Vigenère cipher":
-                self.txt_clave.setText("Ingrese la palabra clave:")
+                self.txt_clave.setText("Enter the word key:")
                 limpiarCampos()
                 self.boton_cifrar = crearBoton(cifrado=True)
                 self.boton_descifrar = crearBoton(cifrado=False)
@@ -407,7 +412,7 @@ class ClasicosScreen(QDialog):
                 gridcifrado.addWidget(self.boton_cifrar, 8, 0)
             elif str(menu.currentText()) == "Substitution cipher":
                 self.txt_clave.setText(
-                    "Ingrese la regla de sustitución (letra seguido por \":\" y la letra que la sustituye) separado por comas:")
+                    "Enter the substitution rule (letter followed by \":\" and the substitution letter) separated by a comma:")
                 limpiarCampos()
                 self.boton_cifrar = crearBoton(cifrado=True)
                 self.boton_descifrar = crearBoton(cifrado=False)
@@ -450,8 +455,8 @@ class ClasicosScreen(QDialog):
                 if encriptar == True:
                     criptosistema_Hill = hill.Hill(img_rgb, img_name)
                     encoded_img_name = criptosistema_Hill.encriptar(img_name)
-                    QMessageBox.information(None, 'Éxito',
-                                            'Encriptación realizada, puede encrontrar la imagen encriptada en: ' + encoded_img_name + '\n' + 'La clave con la que se encriptó se encuentra en: ' + image_file_name + '_key.png',
+                    QMessageBox.information(None, 'Sucess',
+                                            'Encryption done, you can find the image here: ' + encoded_img_name + '\n' + 'La clave con la que se encriptó se encuentra en: ' + image_file_name + '_key.png',
                                             QMessageBox.Ok)
                     output_ref.open_image(encoded_img_name)
                 elif encriptar == False and txt_key.text() != '':
@@ -460,18 +465,17 @@ class ClasicosScreen(QDialog):
                     decoded_img_name = '{0}-descifrada.{1}'.format(img_name, img_extension)
                     img_dec_gbr = cv2.cvtColor(img_dec_vec.astype(np.uint8), cv2.COLOR_RGB2BGR)
                     cv2.imwrite(decoded_img_name, img_dec_gbr)
-                    QMessageBox.information(None, 'Éxito',
-                                            'Desencriptación realizada, puede encrontrar la imagen desencriptada en: ' + decoded_img_name,
+                    QMessageBox.information(None, 'Success',
+                                            'Decryption done, you can find the image here: ' + decoded_img_name,
                                             QMessageBox.Ok)
                     output_ref.open_image(decoded_img_name)
-                    #print()
                 else:
-                    QMessageBox.critical(None, 'Clave no ingresada',
-                                         'Seleccione el archivo que contiene la clave para descifrar la imagen (.png)',
+                    QMessageBox.critical(None, 'Missing Key',
+                                         'Select the (.png) file with the key for decryption',
                                          QMessageBox.Ok)
             else:
-                QMessageBox.critical(None, 'Imagen no ingresada',
-                                     'Arrastre una imagen para procesar o ingrese una imagen con formato válido (.jpg, .png)',
+                QMessageBox.critical(None, 'Error',
+                                     'Drop and image to process or enter one with a valid format (.jpg, .png)',
                                      QMessageBox.Ok)
 
         Hill = QtWidgets.QWidget()
@@ -551,19 +555,19 @@ class ClasicosScreen(QDialog):
         QLabel {
             border:1px solid #161616;
         }''')
-        boton_key = QPushButton(text="Clave")
+        boton_key = QPushButton(text="Key")
         boton_key.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         boton_key.setFixedWidth(150)
         boton_key.clicked.connect(lambda: info())
 
         def info():
             QMessageBox.information(None, 'Info',
-                                    'La clave para encriptar (Involutory Key) se genera automáticamente y se almacena en un archivo .png',
+                                    'The encryption key is automatically generated and saved in a .png file',
                                     QMessageBox.Ok)
 
 
         txt_key2 = QLabel()
-        txt_key2.setText('*Nota: Siempre limpiar campos antes de \n encriptar/desencriptar')
+        txt_key2.setText('*Note: Clean fields before \n encrypting/decrypting')
         gridHill.addWidget(img_c, 1, 0, 6, 1)
         gridHill.addWidget(img_d, 1, 2, 6, 1)
         gridHill.addWidget(txt_img, 0, 0)
@@ -635,6 +639,7 @@ class ClasicosScreen(QDialog):
                 padding:5px;
                 border:1px solid #161616;
                 border-radius:3%;
+                background-color:#8DD3F6;
             }
             QComboBox::drop-down
             {
@@ -1558,6 +1563,7 @@ class BlockScreen(QDialog):
             border:1px solid #161616;
             border-radius:3%;
             font-size: 18px;
+            background-color:#8DD3F6;
         }
         QComboBox::drop-down
         {
@@ -1655,17 +1661,17 @@ class BlockScreen(QDialog):
         QLabel {
             border:1px solid #161616;
         }''')
-        boton_key = QPushButton(text="Clave")
+        boton_key = QPushButton(text="Key")
         boton_key.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         boton_key.setFixedWidth(150)
         boton_key.clicked.connect(lambda: info())
         def info():
             QMessageBox.information(None, 'Info',
-                                    'La clave para encriptar (Involutory Key) se genera automáticamente y se almacena en un archivo .png',
+                                    'The encryption key is automatically generated and saved in a .png file',
                                     QMessageBox.Ok)
 
         txt_key2 = QLabel()
-        txt_key2.setText('*Nota: Siempre limpiar campos antes de \n encriptar/desencriptar')
+        txt_key2.setText('*Note: Clean fields before \n encrypting/decrypting')
 
         self.back_button = QPushButton("Back to Main Menu")
         back_buttonStyle = """
@@ -1710,12 +1716,8 @@ class GammaScreen(QDialog):
         v1box = QVBoxLayout()
         v2box = QVBoxLayout()
         v3box = QVBoxLayout()
-        perm_list = []
-        global permutation_done
-        permutation_done = False
-        current_path = set()
+        perm_list = [None] * 200
         def create_alphabet_graph(permutation, cipher, numbers=None):
-            #numbers = [3,0,2,7,9,6,1,5,4,8]
             pg.setConfigOption('background', 'w')
             pg.setConfigOption('foreground', 'k')
             alphabet_plot = pg.plot()
@@ -1733,13 +1735,15 @@ class GammaScreen(QDialog):
                 label_value.setPos(QtCore.QPointF(i[0],i[1]+0.5))
                 alphabet_plot.addItem(label_value)
             if permutation:
+                c = 0
                 for i in range(10):
                     for j in range(20):
                         a = alpha[(j+numbers[i])%26]
                         label_value = pg.TextItem(text=a, color='#30BCF4')
                         label_value.setPos(QtCore.QPointF(i,j))
                         alphabet_plot.addItem(label_value)
-                        perm_list.append([abc[a.upper()],(i,j)])
+                        perm_list[c]=[abc[a.upper()],(i,j)]
+                        c+=1
             elif cipher:
                 c = 0
                 for i in range(10):
@@ -1756,13 +1760,13 @@ class GammaScreen(QDialog):
                         alphabet_plot.addItem(label_value)
 
             alphabet_plot.addItem(scatter)
-            #alphabet_plot.addItem(label_value)
             alphabet_plot.getPlotItem().hideAxis('bottom')
             alphabet_plot.getPlotItem().hideAxis('left')
             graphpoints_layout.addWidget(alphabet_plot)
 
         def gamma_encrypt(x,y, text, numbers):
             #if permutation_done:
+
             pathh = get_currentpath(x, y)
             num = [int(i) for i in numbers]
             for i in range(len(perm_list)):
@@ -1777,20 +1781,20 @@ class GammaScreen(QDialog):
             graphpoints_layout.itemAt(0).widget().setParent(None)
             create_alphabet_graph(False, True, num)
 
-        def gamma_decrypt(x,y, text):
+        def gamma_decrypt(x,y, text, numbers):
             pathh = get_currentpath(x, y)
+            num = [int(i) for i in numbers]
             for i in range(len(perm_list)):
-                n = alpha(perm_list[i][1][0],perm_list[i][1][1], pathh)
+                n = alpha(perm_list[i][1][0], perm_list[i][1][1], pathh)
                 perm_list[i][0] = (perm_list[i][0]+n)%26
             pool = cycle(perm_list)
             decipher = ''
             for coor in text:
                 occu = next(inv_abc[ix[0]] for ix in pool if str(ix[1]) == coor)
-                #print(occu)
                 decipher+=occu
             plaintext.setPlainText(decipher.lower())
             graphpoints_layout.itemAt(0).widget().setParent(None)
-            create_alphabet_graph(False, True)
+            create_alphabet_graph(False, True, num)
 
         def permutate_letters(numbers):
             permutation_done = True
@@ -1848,7 +1852,7 @@ class GammaScreen(QDialog):
             else:
                 caminos = graph2(x,y,n)
                 c = 'm'
-            figure = plt.figure(figsize=(15,10))
+            figure = plt.figure()
             canvas = FigureCanvas(figure)
             toolbar = NavigationToolbar(canvas, self)
             plt.axis('equal')
@@ -1908,7 +1912,7 @@ class GammaScreen(QDialog):
             plaintext.setPlainText('')
             ciphertext.setPlainText('')
             graphpoints_layout.itemAt(0).widget().setParent(None)
-            create_alphabet_graph(False, False)
+            create_alphabet_graph(False, False, edit_permu.toPlainText().split('-'))
         #--------v1 box-----------
         #Initial Point
         aux_style = """
@@ -2047,6 +2051,7 @@ class GammaScreen(QDialog):
         #--------v3 box-----------
         groupBox_graphpoints = QGroupBox('Letters')
         graphpoints_layout = QVBoxLayout()
+        graphpoints_layout.setContentsMargins(0, 0, 0, 0)
         create_alphabet_graph(False, False, edit_permu.toPlainText().split('-'))
         groupBox_graphpoints.setLayout(graphpoints_layout)
         v3box.addWidget(groupBox_graphpoints)
@@ -2082,7 +2087,7 @@ class GammaScreen(QDialog):
         setperm_boton.clicked.connect(lambda: permutate_letters(edit_permu.toPlainText().split('-')))
         #pathh = get_currentpath(spin_x.value(), spin_y.value())
         boton_cipher.clicked.connect(lambda: gamma_encrypt(spin_x.value(), spin_y.value(), list(plaintext.toPlainText().strip()), edit_permu.toPlainText().split('-')))
-        boton_decipher.clicked.connect(lambda: gamma_decrypt(spin_x.value(), spin_y.value(), list(ciphertext.toPlainText().split(';'))))
+        boton_decipher.clicked.connect(lambda: gamma_decrypt(spin_x.value(), spin_y.value(), list(ciphertext.toPlainText().split(';')), edit_permu.toPlainText().split('-')))
         #back_button.setAlignment(Qt.AlignRight)
         vbigbigbox.addWidget(back_button)
         self.setLayout(vbigbigbox)
@@ -2104,7 +2109,7 @@ widget.addWidget(gamma)
 widget.setFixedHeight(770)
 widget.setFixedWidth(1200)
 widget.setStyleSheet("background: #ffffff;")
-widget.setWindowTitle("Criptool")
+widget.setWindowTitle("CrypTool")
 widget.setCurrentIndex(0)
 widget.show()
 font = QtGui.QFont()
