@@ -20,15 +20,13 @@ def encrypt(msg, q, h, g):
  
     en_msg = []
  
-    k = mod_pow(q)# Private key for sender
+    k = mod_pow(q)
     s = mod_pow(h, k, q)
     p = mod_pow(g, k, q)
      
     for i in range(0, len(msg)):
         en_msg.append(msg[i])
- 
-    print("g^k used : ", p)
-    print("g^ak used : ", s)
+
     for i in range(0, len(en_msg)):
         en_msg[i] = s * ord(en_msg[i])
  
