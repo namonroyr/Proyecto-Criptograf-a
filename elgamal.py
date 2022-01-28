@@ -13,9 +13,7 @@ def gen_prime():
 
 
 def gen_key(q):
-    key = rd.randint(mth.pow(10, 20), q)
-    while mth.gcd(q,key) != 1:
-        key = rd.randint(mth.pow(10, 20), q)
+    key = rd.randint(2, q)
     return key
 
 def mod_pow(a, b, c):
@@ -51,5 +49,3 @@ def decrypt(en_msg, p, key, q):
         dr_msg.append(chr(int(en_msg[i]/h)))
          
     return dr_msg
-
-print(gen_prime())
