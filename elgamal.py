@@ -1,5 +1,16 @@
 import random as rd
 import math as mth
+import numpy as np
+
+with open('primes.txt') as f:
+	lines = f.readlines()
+primes = list()
+for line in lines:
+	primes += list(map(int, line.strip().split(' ')))
+
+def gen_prime():
+    return np.random.choice(primes, size=1)[0]
+
 
 def gen_key(q):
     key = rd.randint(mth.pow(10, 20), q)
@@ -40,3 +51,5 @@ def decrypt(en_msg, p, key, q):
         dr_msg.append(chr(int(en_msg[i]/h)))
          
     return dr_msg
+
+print(gen_prime())
