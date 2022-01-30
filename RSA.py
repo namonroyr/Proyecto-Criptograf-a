@@ -1,6 +1,22 @@
 import random
+import numpy as np
 from math import gcd
 
+
+with open('primes.txt') as f:
+	lines = f.readlines()
+primes = list()
+for line in lines:
+	primes += list(map(int, line.strip().split(' ')))
+
+def gen_primes():
+    go = True
+    while go:
+        p1 = np.random.choice(primes, size=1)[0]
+        p2 = np.random.choice(primes, size=1)[0]
+        if p1 != p2:
+            go = False
+    return p1, p2
 '''
 Euclid's extended algorithm for finding the multiplicative inverse of two numbers
 '''
@@ -87,10 +103,6 @@ def is_prime(n, k):
 
 
 def generate_key_pair(p, q):
-    if not (is_prime(p, 5) and is_prime(q, 5)):
-        raise ValueError('Both numbers must be prime.')
-    elif p == q:
-        raise ValueError('p and q cannot be equal')
     # n = pq
     n = p * q
 
@@ -109,9 +121,8 @@ def generate_key_pair(p, q):
     # Use Extended Euclid's Algorithm to generate the private key
     d = multiplicative_inverse(e, phi)
 
-    # Return public and private key_pair
-    # Public key is (e, n) and private key is (d, n)
-    return ((e, n), (d, n))
+    # Return parameters
+    return phi, n, e, d
 
 
 def encrypt(pk, plaintext):
