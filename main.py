@@ -14,6 +14,8 @@ import image_sdes
 import sdes_new
 import itertools
 import RSA
+import elgamal
+import random
 from itertools import cycle
 from pyqtgraph import PlotWidget, plot
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -2166,6 +2168,9 @@ class PublicKeyScreen(QDialog):
             font: bold;
             }
             """
+        """
+        ********************************RSA Tab***********************************
+        """
         def gen_prime_numsRSA():
             p1, p2 = RSA.gen_primes()
             prime1.setPlainText(str(p1))
@@ -2341,6 +2346,170 @@ class PublicKeyScreen(QDialog):
         groupBox_ciphertxtPublic.setLayout(ciphertxtPublic_layout)
         h2boxRSA.addWidget(groupBox_ciphertxtPublic)
         vboxRSA.addLayout(h2boxRSA, 9)
+        """
+        ********************************Gamal Tab***********************************
+        """
+        def gen_prime_numGamal():
+            p1 = elgamal.find_prime()
+            print('heree')
+            primeGamal.setPlainText(str(p1))
+        def calculate_parametersGamal():
+            prime = primeGamal.toPlainText()
+            if prime == '':
+                QMessageBox.critical(None, 'Missing Prime Number',
+                                     'Please insert/calculate a 256 bit prime number first.',
+                                     QMessageBox.Ok)
+                return
+            elif not (elgamal.is_prime(int(prime), 5)):
+                QMessageBox.critical(None, 'Not a Prime Number',
+                                     'The number must be prime.',
+                                     QMessageBox.Ok)
+                return
+            p = int(prime)
+            alpha = elgamal.find_primitive_root(p)
+            a = random.randint( 1, (p - 1) // 2 )
+            beta = elgamal.power(alpha, a, p)
+            alpha_pt.setPlainText(str(alpha))
+            beta_pt.setPlainText(str(beta))
+            a_ptGamal.setPlainText(str(a))
+        def clean_Gamal():
+            primeGamal.setPlainText('')
+            alpha_pt.setPlainText('')
+            beta_pt.setPlainText('')
+            a_ptGamal.setPlainText('')
+            plaintxtPublicGamal.setPlainText('')
+            ciphertxtPublicGamal.setPlainText('')
+        def encrypt_Gamal():
+            if primeGamal.toPlainText() == '':
+                QMessageBox.critical(None, 'Missing Prime Number',
+                                     'Please insert/calculate a 256-bit prime number first',
+                                     QMessageBox.Ok)
+                return
+            elif a_ptGamal.toPlainText() == '':
+                QMessageBox.critical(None, 'Missing Parameters',
+                                     'Calculate parameters first',
+                                     QMessageBox.Ok)
+                return
+            p = int(primeGamal.toPlainText())
+            alpha = int(alpha_pt.toPlainText())
+            beta = int(beta_pt.toPlainText())
+            p_text = plaintxtPublicGamal.toPlainText()
+            cipher = elgamal.encrypt(p, alpha, beta, p_text)
+            ciphertxtPublicGamal.setPlainText(cipher)
+        def decrypt_Gamal():
+            if a_ptGamal.toPlainText() == '' or primeGamal.toPlainText() == '':
+                QMessageBox.critical(None, 'Missing Parameters',
+                                     'Insert private key parameters and prime number first',
+                                     QMessageBox.Ok)
+                return
+            p = int(primeGamal.toPlainText())
+            a = int(a_ptGamal.toPlainText())
+            print("here1")
+            cipher = ciphertxtPublicGamal.toPlainText()
+            plain = elgamal.decrypt(p, a, cipher)
+            print("here2")
+            plaintxtPublicGamal.setPlainText(plain)
+        ElGamalWidget = QtWidgets.QWidget()
+        tabPublicWidget.addTab(ElGamalWidget, "ElGamal Cryptosystem")
+        hboxElGamal = QHBoxLayout()
+        v1boxElGamal = QVBoxLayout()
+        v2boxElGamal = QVBoxLayout()
+        ElGamalWidget.setLayout(hboxElGamal)
+        ###v1boxElGamal-----------------------
+        #Group Box Prime Number
+        groupBox_primegamal = QGroupBox('Prime Number')
+        groupBoxLayout_primegamal = QVBoxLayout(groupBox_primegamal)
+        txt_pg = QLabel('Please enter a prime number that has 256 bits in its binary representation or \ngenerate it with the button below for ease.')
+        groupBoxLayout_pgamal = QHBoxLayout()
+        groupBoxLayout_genprimegamal = QHBoxLayout()
+        txt_pgamal = QLabel('Prime = ')
+        primeGamal = QPlainTextEdit()
+        groupBoxLayout_pgamal.addWidget(txt_pgamal)
+        groupBoxLayout_pgamal.addWidget(primeGamal)
+        boton_autogamal = QPushButton(text="Auto-Generate")
+        boton_autogamal.setStyleSheet(aux_style)
+        boton_autogamal.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_autogamal.setFixedWidth(150)
+        boton_autogamal.clicked.connect(gen_prime_numGamal)
+        groupBoxLayout_genprimegamal.addWidget(boton_autogamal)
+        groupBoxLayout_genprimegamal.setAlignment(QtCore.Qt.AlignCenter)
+        groupBoxLayout_primegamal.addWidget(txt_pg)
+        groupBoxLayout_primegamal.addLayout(groupBoxLayout_pgamal)
+        groupBoxLayout_primegamal.addLayout(groupBoxLayout_genprimegamal)
+        v1boxElGamal.addWidget(groupBox_primegamal)
+        #Group Box ----------  Parameters
+        groupBox_parametersGamal = QGroupBox('Parameters')
+        groupBoxLayout_parametersGamal = QVBoxLayout(groupBox_parametersGamal)
+        groupBoxLayout_parametersGamal.setAlignment(QtCore.Qt.AlignCenter)
+        h1_paramGamal = QHBoxLayout()
+        h2_paramGamal = QHBoxLayout()
+        h3_paramGamal = QHBoxLayout()
+        h5_buttonGamal = QHBoxLayout()
+        boton_genParGamal = QPushButton(text="Calculate")
+        boton_genParGamal.setStyleSheet(aux_style)
+        boton_genParGamal.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_genParGamal.setFixedWidth(150)
+        h5_buttonGamal.setAlignment(Qt.AlignCenter)
+        h5_buttonGamal.addWidget(boton_genParGamal)
+        txt_publickGamal = QLabel('Public Key: ')
+        txt_privatekGamal = QLabel('Private Key: ')
+        txt_alpha = QLabel('    α = ')
+        txt_beta = QLabel('    β = ')
+        txt_aGamal = QLabel('    a = ')
+        alpha_pt = QPlainTextEdit()
+        beta_pt = QPlainTextEdit()
+        a_ptGamal = QPlainTextEdit()
+        h1_paramGamal.addWidget(txt_alpha)
+        h1_paramGamal.addWidget(alpha_pt)
+        h2_paramGamal.addWidget(txt_beta)
+        h2_paramGamal.addWidget(beta_pt)
+        h3_paramGamal.addWidget(txt_aGamal)
+        h3_paramGamal.addWidget(a_ptGamal)
+        groupBoxLayout_parametersGamal.addWidget(txt_publickGamal)
+        groupBoxLayout_parametersGamal.addLayout(h1_paramGamal)
+        groupBoxLayout_parametersGamal.addLayout(h2_paramGamal)
+        groupBoxLayout_parametersGamal.addWidget(txt_privatekGamal)
+        groupBoxLayout_parametersGamal.addLayout(h3_paramGamal)
+        groupBoxLayout_parametersGamal.addLayout(h5_buttonGamal)
+        v1boxElGamal.addWidget(groupBox_parametersGamal)
+        boton_genParGamal.clicked.connect(calculate_parametersGamal)
+        groupBox_buttonsGamal = QGroupBox('')
+        buttonsGamal_layout = QVBoxLayout(groupBox_buttonsGamal)
+        boton_cipher_Gamal = crearBoton(cifrado=True)
+        boton_decipher_Gamal = crearBoton(cifrado=False)
+        boton_limpiar_Gamal = QPushButton(text="Clean All")
+        boton_limpiar_Gamal.setStyleSheet(aux_style)
+        boton_limpiar_Gamal.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        boton_limpiar_Gamal.setFixedWidth(150)
+        boton_cipher_Gamal.clicked.connect(encrypt_Gamal)
+        boton_decipher_Gamal.clicked.connect(decrypt_Gamal)
+        boton_limpiar_Gamal.clicked.connect(clean_Gamal)
+        buttonsGamal_layout.addWidget(boton_cipher_Gamal)
+        buttonsGamal_layout.addWidget(boton_decipher_Gamal)
+        buttonsGamal_layout.addWidget(boton_limpiar_Gamal)
+        buttonsGamal_layout.setAlignment(Qt.AlignCenter)
+        v1boxElGamal.addWidget(groupBox_buttonsGamal)
+
+        groupBox_plaintxtPublicGamal = QGroupBox('Plain Text')
+        plaintxtPublic_layoutGamal = QVBoxLayout()
+        plaintxtPublicGamal = QPlainTextEdit()
+        plain_insGamal = QLabel('To encrypt, please make sure you introduced/generated a 256 bit prime number and the button to calculate the \nparameters has been pressed.')
+        plaintxtPublic_layoutGamal.addWidget(plain_insGamal)
+        plaintxtPublic_layoutGamal.addWidget(plaintxtPublicGamal)
+        groupBox_plaintxtPublicGamal.setLayout(plaintxtPublic_layoutGamal)
+        v2boxElGamal.addWidget(groupBox_plaintxtPublicGamal)
+        groupBox_ciphertxtPublicGamal = QGroupBox('Cipher Text')
+        ciphertxtPublic_layoutGamal = QVBoxLayout()
+        ciphertxtPublicGamal = QPlainTextEdit()
+        cipher_insGamal = QLabel('To decrypt, please make sure you introduced the prime number used and the a parameter.')
+        ciphertxtPublic_layoutGamal.addWidget(cipher_insGamal)
+        ciphertxtPublic_layoutGamal.addWidget(ciphertxtPublicGamal)
+        groupBox_ciphertxtPublicGamal.setLayout(ciphertxtPublic_layoutGamal)
+        v2boxElGamal.addWidget(groupBox_ciphertxtPublicGamal)
+
+        hboxElGamal.addLayout(v1boxElGamal, 4)
+        hboxElGamal.addLayout(v2boxElGamal, 6)
+
 """
 Interfaz & Layout
 """

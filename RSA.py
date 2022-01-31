@@ -55,22 +55,17 @@ def power(a, n, p):
 
     # Initialize result
     res = 1
-
     # Update 'a' if 'a' >= p
     a = a % p
-
     while n > 0:
-
         # If n is odd, multiply 'a' with result
         if n % 2:
             res = (res * a) % p
             n = n - 1
         else:
             a = (a ** 2) % p
-
             # n must be even now
             n = n // 2
-
     return res % p
 
 # If n is prime, then always returns true,
