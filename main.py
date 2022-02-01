@@ -16,6 +16,7 @@ import itertools
 import RSA
 import elgamal
 import random
+from aux_prime_functions import *
 from itertools import cycle
 from pyqtgraph import PlotWidget, plot
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -2172,7 +2173,8 @@ class PublicKeyScreen(QDialog):
         ********************************RSA Tab***********************************
         """
         def gen_prime_numsRSA():
-            p1, p2 = RSA.gen_primes()
+            p1 = find_prime(iNumBits=128, iConfidence=16)
+            p2 = find_prime(iNumBits=128, iConfidence=16)
             prime1.setPlainText(str(p1))
             prime2.setPlainText(str(p2))
         def calculate_parametersRSA():
@@ -2183,7 +2185,7 @@ class PublicKeyScreen(QDialog):
                                      'Please insert/calculate prime numbers first',
                                      QMessageBox.Ok)
                 return
-            elif not (RSA.is_prime(int(p1), 5) and RSA.is_prime(int(p2), 5)):
+            elif not (is_prime(int(p1), 5) and is_prime(int(p2), 5)):
                 QMessageBox.critical(None, 'Not Prime Numbers',
                                      'Both numbers must be prime.',
                                      QMessageBox.Ok)
@@ -2351,7 +2353,6 @@ class PublicKeyScreen(QDialog):
         """
         def gen_prime_numGamal():
             p1 = elgamal.find_prime()
-            print('heree')
             primeGamal.setPlainText(str(p1))
         def calculate_parametersGamal():
             prime = primeGamal.toPlainText()
@@ -2360,7 +2361,7 @@ class PublicKeyScreen(QDialog):
                                      'Please insert/calculate a 256 bit prime number first.',
                                      QMessageBox.Ok)
                 return
-            elif not (elgamal.is_prime(int(prime), 5)):
+            elif not (is_prime(int(prime), 5)):
                 QMessageBox.critical(None, 'Not a Prime Number',
                                      'The number must be prime.',
                                      QMessageBox.Ok)
@@ -2368,7 +2369,7 @@ class PublicKeyScreen(QDialog):
             p = int(prime)
             alpha = elgamal.find_primitive_root(p)
             a = random.randint( 1, (p - 1) // 2 )
-            beta = elgamal.power(alpha, a, p)
+            beta = modexp(alpha, a, p)
             alpha_pt.setPlainText(str(alpha))
             beta_pt.setPlainText(str(beta))
             a_ptGamal.setPlainText(str(a))
@@ -2404,10 +2405,8 @@ class PublicKeyScreen(QDialog):
                 return
             p = int(primeGamal.toPlainText())
             a = int(a_ptGamal.toPlainText())
-            print("here1")
             cipher = ciphertxtPublicGamal.toPlainText()
             plain = elgamal.decrypt(p, a, cipher)
-            print("here2")
             plaintxtPublicGamal.setPlainText(plain)
         ElGamalWidget = QtWidgets.QWidget()
         tabPublicWidget.addTab(ElGamalWidget, "ElGamal Cryptosystem")
